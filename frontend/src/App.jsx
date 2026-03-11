@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Narrative from './pages/Narrative';
 import Simulator from './pages/Simulator';
 import SupplyChains from './pages/SupplyChains';
+import Market from './pages/Market';
 
 function AppContent() {
   const location = useLocation();
@@ -22,6 +23,7 @@ function AppContent() {
           <Route path="/narrative" element={<Narrative />} />
           <Route path="/simulator" element={<Simulator />} />
           <Route path="/supply-chains" element={<SupplyChains />} />
+          <Route path="/market" element={<Market />} />
         </Routes>
       </main>
       {!isHome && (

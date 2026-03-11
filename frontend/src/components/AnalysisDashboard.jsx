@@ -15,7 +15,8 @@ const AnalysisDashboard = () => {
     setResult(null);
     setError(null);
     try {
-      const response = await fetch('http://localhost:5000/api/analysis/analyze', {
+      const baseUrl = 'http://localhost:5000';
+      const response = await fetch(`${baseUrl}/api/analysis/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic, symbol })

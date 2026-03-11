@@ -10,9 +10,17 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Request logger for debugging
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
+
 // Routes
 app.use('/api/analysis', require('./routes/analysisRoutes'));
 app.use('/api/live', require('./routes/liveFeedRoutes'));
+app.use('/api/market', require('./routes/marketRoutes'));
+app.use('/api/simulator', require('./routes/simulationRoutes'));
 
 
 app.get('/', (req, res) => {

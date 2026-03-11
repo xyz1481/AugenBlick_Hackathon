@@ -1,6 +1,8 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Globe from 'react-globe.gl';
 import { useNavigate } from 'react-router-dom';
+import HISTORICAL_DATA from '../data/historicalConflicts.json';
+import TRADE_DATA from '../data/trade.json';
 
 // ── Event Types ─────────────────────────────────────────────────────────────
 const EVENT_TYPES = {
@@ -149,6 +151,26 @@ const FLIGHT_ROUTES = [
   { name: 'São Paulo ↔ Lisbon', startLat: -23.5, startLng: -46.6, endLat: 38.7, endLng: -9.1 },
   { name: 'New York ↔ Buenos Aires', startLat: 40.7, startLng: -74.0, endLat: -34.6, endLng: -58.4 },
 ];
+const TRADE_COUNTRY_COORDS = {
+  'Russia': { lat: 61.5, lng: 105.3 }, 'China': { lat: 35.8, lng: 104.1 }, 'India': { lat: 20.5, lng: 78.9 },
+  'Saudi Arabia': { lat: 23.8, lng: 45.0 }, 'United States': { lat: 37.0, lng: -95.7 }, 'Australia': { lat: -25.2, lng: 133.7 },
+  'Brazil': { lat: -14.2, lng: -51.9 }, 'Canada': { lat: 56.1, lng: -106.3 }, 'Norway': { lat: 60.4, lng: 8.4 },
+  'European Union': { lat: 48.0, lng: 10.0 }, 'Japan': { lat: 36.2, lng: 138.2 }, 'South Korea': { lat: 35.9, lng: 127.7 },
+  'Indonesia': { lat: -0.7, lng: 113.9 }, 'Malaysia': { lat: 4.2, lng: 101.9 }, 'Vietnam': { lat: 14.0, lng: 108.2 },
+  'Germany': { lat: 51.1, lng: 10.4 }, 'Taiwan': { lat: 23.6, lng: 120.9 }, 'United Arab Emirates': { lat: 23.4, lng: 53.8 },
+  'Nigeria': { lat: 9.0, lng: 8.6 }, 'Angola': { lat: -11.2, lng: 17.8 }, 'Chile': { lat: -35.6, lng: -71.5 },
+  'Peru': { lat: -9.1, lng: -75.0 }, 'Kazakhstan': { lat: 48.0, lng: 66.9 }, 'Turkmenistan': { lat: 38.9, lng: 59.5 },
+  'Mongolia': { lat: 46.8, lng: 103.8 }, 'Mexico': { lat: 23.6, lng: -102.5 }, 'France': { lat: 46.2, lng: 2.2 },
+  'Italy': { lat: 41.8, lng: 12.5 }, 'Netherlands': { lat: 52.1, lng: 5.2 }, 'Belgium': { lat: 50.5, lng: 4.4 },
+  'Poland': { lat: 51.9, lng: 19.1 }, 'Spain': { lat: 40.4, lng: -3.7 }, 'Turkey': { lat: 38.9, lng: 35.2 },
+  'Egypt': { lat: 26.8, lng: 30.8 }, 'South Africa': { lat: -30.5, lng: 22.9 },
+  'Strait of Hormuz': { lat: 26.6, lng: 56.5 }, 'Red Sea': { lat: 15.5, lng: 43.5 }, 'Suez Canal': { lat: 29.9, lng: 32.5 },
+  'Gaza': { lat: 31.4, lng: 34.4 }, 'Lebanon': { lat: 33.8, lng: 35.8 }, 'Iran': { lat: 32.4, lng: 53.6 },
+  'Ukraine': { lat: 48.3, lng: 31.1 }, 'Black Sea': { lat: 43.4, lng: 34.4 }, 'Baltic Sea': { lat: 55.0, lng: 15.0 },
+  'Bab el-Mandeb Strait': { lat: 12.6, lng: 43.3 }, 'Korean Peninsula': { lat: 37.6, lng: 127.5 },
+  'Sahel Region': { lat: 15.0, lng: 10.0 }, 'Sudan': { lat: 12.8, lng: 30.2 }, 'Niger': { lat: 17.6, lng: 8.0 },
+  'Central African Republic': { lat: 6.6, lng: 20.9 }, 'DR Congo': { lat: -4.0, lng: 21.7 }
+};
 
 export default function ConflictGlobe() {
   const globeRef = useRef();
@@ -163,6 +185,9 @@ export default function ConflictGlobe() {
   const GLOBE_H = height - NAVBAR_H - TOP_BAR_H;
   const [gti, setGti] = useState(71.4);
   const [hoveredMarker, setHoveredMarker] = useState(null);
+  const [selectedYear, setSelectedYear] = useState('Live'); 
+  const [isTradeMode, setIsTradeMode] = useState(false);
+  const [selectedTrade, setSelectedTrade] = useState(null);
   // activeOverlays: Set of 'shipping' | 'flights'
   const [activeOverlays, setActiveOverlays] = useState(new Set());
 
@@ -174,10 +199,22 @@ export default function ConflictGlobe() {
     });
   };
 
-  const visibleArcs = [
-    ...(activeOverlays.has('shipping') ? SHIPPING_ROUTES.map(r => ({ ...r, kind: 'shipping' })) : []),
-    ...(activeOverlays.has('flights')  ? FLIGHT_ROUTES.map(r => ({ ...r, kind: 'flights' }))   : []),
-  ];
+  const visibleArcs = useMemo(() => [
+    ...(isTradeMode ? [] : activeOverlays.has('shipping') ? SHIPPING_ROUTES.map(r => ({ ...r, kind: 'shipping' })) : []),
+    ...(isTradeMode ? [] : activeOverlays.has('flights')  ? FLIGHT_ROUTES.map(r => ({ ...r, kind: 'flights' }))   : []),
+    ...(isTradeMode ? TRADE_DATA.map(t => {
+      const s = TRADE_COUNTRY_COORDS[t.source];
+      const e = TRADE_COUNTRY_COORDS[t.target];
+      if (!s || !e) return null;
+      return {
+        ...t,
+        kind: 'trade',
+        startLat: s.lat, startLng: s.lng,
+        endLat: e.lat, endLng: e.lng,
+        name: `${t.source} → ${t.target}: ${t.goods[0]}`
+      };
+    }).filter(Boolean) : [])
+  ], [activeOverlays, isTradeMode]);
 
   const [newsFeed, setNewsFeed] = useState([]);
   const [feedLoading, setFeedLoading] = useState(true);
@@ -208,11 +245,25 @@ export default function ConflictGlobe() {
   }, [fetchLiveFeed]);
 
 
-  // Fetch GeoJSON
+  // Fetch GeoJSON (Low resolution for performance)
   useEffect(() => {
-    fetch('https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/country-polygons/ne_110m_admin_0_countries.geojson')
+    fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson')
       .then(r => r.json())
-      .then(setCountries);
+      .then(data => {
+        // Pre-process: Inject conflict data into properties so we don't look it up 200x per frame
+        const enrichedFeatures = (data.features || []).map(feat => {
+          const name = feat.properties.ADMIN || feat.properties.NAME || feat.properties.name || '';
+          return {
+            ...feat,
+            properties: {
+              ...feat.properties,
+              conflictData: CONFLICT_ZONES[name] || null
+            }
+          };
+        });
+        setCountries({ ...data, features: enrichedFeatures });
+      })
+      .catch(err => console.error('GeoJSON Load Error:', err));
   }, []);
 
   useEffect(() => {
@@ -236,25 +287,37 @@ export default function ConflictGlobe() {
     return () => clearInterval(id);
   }, []);
 
-  const getCountryData = (d) => {
-    const name = d?.properties?.ADMIN || d?.properties?.NAME || d?.properties?.name || '';
-    return CONFLICT_ZONES[name] || null;
-  };
+  // Pre-processed data accessors
 
-  // Merge static markers with live news markers
-  const filteredMarkers = (() => {
+  // Merge static markers with live news markers (Memoized to prevent lag)
+  const filteredMarkers = useMemo(() => {
+    // 1. If Historical Year is selected, only show that year's data
+    if (selectedYear !== 'Live') {
+      return HISTORICAL_DATA
+        .filter(d => d.year === parseInt(selectedYear))
+        .map(n => ({
+          ...n,
+          cleanedCountry: n.country.replace(/[\u{1F1E0}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim(),
+          isHistorical: true
+        }))
+        .filter(m => {
+          if (activeTab === 'All') return true;
+          return MARKER_REGION[activeTab]?.includes(m.cleanedCountry);
+        });
+    }
+
+    // 2. Otherwise show Live + Static
     const staticFiltered = CONFLICT_MARKERS.filter(m => {
       if (activeTab === 'All') return true;
       return MARKER_REGION[activeTab]?.includes(m.country);
     });
 
     const newsMarkers = newsFeed
-      .filter(n => n.lat !== 20 || n.lng !== 0) // Only plot if we have a specific country match
+      .filter(n => n.lat !== 20 || n.lng !== 0)
       .map(n => ({
         lat: n.lat,
         lng: n.lng,
         type: n.type,
-        // Strip emoji for internal filtering logic match
         country: n.country.replace(/[\u{1F1E0}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim(),
         title: `${n.source}: ${n.country}`,
         news: n.text,
@@ -266,11 +329,20 @@ export default function ConflictGlobe() {
       });
 
     return [...staticFiltered, ...newsMarkers];
-  })();
+  }, [selectedYear, activeTab, newsFeed]);
 
   const handlePolygonClick = (d) => {
-    const data = getCountryData(d);
-    const name = d?.properties?.ADMIN || d?.properties?.NAME || d?.properties?.name || '';
+    const data = d.properties.conflictData;
+    const name = d.properties.ADMIN || d.properties.NAME || d.properties.name || '';
+    
+    if (isTradeMode) {
+      // Find trade connections for this country
+      const connections = TRADE_DATA.filter(t => t.source === name || t.target === name);
+      if (connections.length > 0) {
+         setSelectedTrade({ country: name, connections });
+      }
+    }
+
     if (data) {
       setSelectedCountry({ name, ...data });
       globeRef.current?.controls()?.autoRotate && (globeRef.current.controls().autoRotate = false);
@@ -296,9 +368,9 @@ export default function ConflictGlobe() {
     <div style={{ width: '100vw', height: `${height - NAVBAR_H}px`, display: 'flex', flexDirection: 'column', background: '#0a0f1e', fontFamily: '"Inter", sans-serif', position: 'relative' }}>
 
       {/* ── Top Navigation Bar ──────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0', height: '48px', background: '#0d1527', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0, paddingLeft: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', height: '48px', background: '#0d1527', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0, padding: '0 16px' }}>
         {/* GTI + LIVE */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingRight: '24px', borderRight: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingRight: '16px', borderRight: '1px solid rgba(255,255,255,0.08)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#2ecc71', display: 'inline-block', boxShadow: '0 0 8px #2ecc71', animation: 'livePulse 1.5s infinite' }} />
             <span style={{ color: '#2ecc71', fontWeight: '700', fontSize: '11px', letterSpacing: '2px' }}>LIVE</span>
@@ -307,6 +379,27 @@ export default function ConflictGlobe() {
             <span style={{ fontSize: '11px', color: '#5a7a9a' }}>GTI</span>
             <span style={{ color: gti > 72 ? '#e74c3c' : '#f1c40f', fontWeight: '900', fontSize: '20px', fontFamily: 'monospace' }}>{gti}</span>
           </div>
+        </div>
+
+        {/* Time Travel Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px', borderRight: '1px solid rgba(255,255,255,0.08)' }}>
+          <span style={{ fontSize: '10px', color: '#5a7a9a', textTransform: 'uppercase', letterSpacing: '1px', marginLeft: '16px' }}>Time Axis</span>
+          <select 
+            value={selectedYear} 
+            onChange={(e) => setSelectedYear(e.target.value)}
+            style={{ 
+              background: '#0a0f1e', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', 
+              borderRadius: '4px', fontSize: '11px', padding: '2px 6px', outline: 'none', cursor: 'pointer',
+              fontWeight: '700'
+            }}
+          >
+            <option value="Live">LIVE (2025/26)</option>
+            <option value="2024">History: 2024</option>
+            <option value="2023">History: 2023</option>
+            <option value="2022">History: 2022</option>
+            <option value="2021">History: 2021</option>
+            <option value="2020">History: 2020</option>
+          </select>
         </div>
 
         {/* Region Tabs */}
@@ -322,27 +415,43 @@ export default function ConflictGlobe() {
         </div>
 
         {/* Overlay Toggles — Shipping & Flights */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', paddingLeft: '12px', borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
-          <span style={{ fontSize: '10px', color: '#5a7a9a', textTransform: 'uppercase', letterSpacing: '1px', marginRight: '2px' }}>Overlay</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 12px', borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
+          <span style={{ fontSize: '10px', color: '#5a7a9a', textTransform: 'uppercase', letterSpacing: '1px', marginRight: '4px' }}>Overlay</span>
           {[{ key: 'shipping', label: 'Shipping', color: '#1abc9c' }, { key: 'flights', label: 'Flights', color: '#a29bfe' }].map(({ key, label, color }) => (
             <button key={key} onClick={() => toggleOverlay(key)} style={{
-              padding: '5px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: '700',
+              padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700',
               background: activeOverlays.has(key) ? color : 'transparent',
               color: activeOverlays.has(key) ? '#000' : '#5a7a9a',
               border: `1px solid ${activeOverlays.has(key) ? color : 'rgba(255,255,255,0.1)'}`,
               transition: 'all 0.15s',
+              whiteSpace: 'nowrap'
             }}>
               {activeOverlays.has(key) ? '◉' : '○'} {label}
             </button>
           ))}
         </div>
 
+        {/* Trade Mode Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
+          <button onClick={() => { setIsTradeMode(!isTradeMode); setSelectedTrade(null); }} style={{
+            padding: '5px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: '800',
+            background: isTradeMode ? '#27ae60' : 'transparent',
+            color: isTradeMode ? '#fff' : '#5a7a9a',
+            border: `1px solid ${isTradeMode ? '#27ae60' : 'rgba(255,255,255,0.1)'}`,
+            transition: 'all 0.15s',
+            letterSpacing: '0.5px',
+            whiteSpace: 'nowrap'
+          }}>
+            {isTradeMode ? 'Trade Mode Active' : 'Trade Intel'}
+          </button>
+        </div>
+
         {/* Legend */}
-        <div style={{ display: 'flex', gap: '12px', paddingRight: '16px', fontSize: '10px', color: '#5a7a9a' }}>
+        <div style={{ display: 'flex', gap: '12px', paddingLeft: '12px', borderLeft: '1px solid rgba(255,255,255,0.08)', fontSize: '10px', color: '#5a7a9a' }}>
           {['CRITICAL','HIGH','MEDIUM','LOW'].map(l => (
             <span key={l} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: LEVEL_COLOR[l], display: 'inline-block' }} />
-              {l}
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: LEVEL_COLOR[l], display: 'inline-block' }} />
+              <span style={{ fontSize: '9px', fontWeight: '700' }}>{l}</span>
             </span>
           ))}
         </div>
@@ -364,19 +473,19 @@ export default function ConflictGlobe() {
             bumpImageUrl="https://unpkg.com/three-globe@2.30.0/example/img/earth-topology.png"
             polygonsData={countries.features || []}
             polygonCapColor={(d) => {
-              const data = getCountryData(d);
+              const data = d.properties.conflictData;
               return data ? LEVEL_FILL[data.level] : 'rgba(255,255,255,0.04)';
             }}
             polygonSideColor={() => 'rgba(0,0,0,0.5)'}
             polygonStrokeColor={() => 'rgba(255,255,255,0.06)'}
             polygonAltitude={(d) => {
-              const data = getCountryData(d);
+              const data = d.properties.conflictData;
               if (!data) return 0.002;
               return { CRITICAL: 0.02, HIGH: 0.012, MEDIUM: 0.006, LOW: 0.003 }[data.level] || 0.002;
             }}
             polygonLabel={(d) => {
-              const data = getCountryData(d);
-              const name = d?.properties?.ADMIN || d?.properties?.NAME || d?.properties?.name || '';
+              const data = d.properties.conflictData;
+              const name = d.properties.ADMIN || d.properties.NAME || d.properties.name || '';
               if (!data) return `<div style="background:#0d1527;padding:6px 10px;border-radius:6px;color:#5a7a9a;font-size:12px;border:1px solid #1e2d4a">${name}</div>`;
               return `<div style="background:#0a1020;padding:10px 14px;border-radius:10px;border:1px solid ${LEVEL_COLOR[data.level]}44;min-width:200px">
                 <div style="font-weight:800;font-size:14px;color:#fff;margin-bottom:6px">${name}</div>
@@ -401,16 +510,34 @@ export default function ConflictGlobe() {
             arcStartLng="startLng"
             arcEndLat="endLat"
             arcEndLng="endLng"
-            arcColor={(d) => d.kind === 'shipping'
-              ? ['rgba(26,188,156,0)', 'rgba(26,188,156,0.9)', 'rgba(26,188,156,0)']
-              : ['rgba(162,155,254,0)', 'rgba(162,155,254,0.9)', 'rgba(162,155,254,0)']
-            }
+            arcColor={(d) => {
+              if (d.kind === 'trade') return ['rgba(39,174,96,0)', 'rgba(39,174,96,0.9)', 'rgba(39,174,96,0)'];
+              return d.kind === 'shipping'
+                ? ['rgba(26,188,156,0)', 'rgba(26,188,156,0.9)', 'rgba(26,188,156,0)']
+                : ['rgba(162,155,254,0)', 'rgba(162,155,254,0.9)', 'rgba(162,155,254,0)'];
+            }}
             arcDashLength={0.3}
             arcDashGap={0.15}
-            arcDashAnimateTime={(d) => d.kind === 'shipping' ? 4000 : 2500}
-            arcStroke={(d) => d.kind === 'shipping' ? 0.5 : 0.35}
-            arcLabel={(d) => `<div style="background:#0a1020;padding:6px 10px;border-radius:6px;color:#fff;font-size:12px;border:1px solid ${
-              d.kind === 'shipping' ? '#1abc9c' : '#a29bfe'}44">${d.name}</div>`}
+            arcDashAnimateTime={(d) => {
+              if (d.kind === 'trade') return 3000;
+              return d.kind === 'shipping' ? 4000 : 2500;
+            }}
+            arcStroke={(d) => d.kind === 'trade' ? 0.6 : d.kind === 'shipping' ? 0.5 : 0.35}
+            arcLabel={(d) => {
+              if (d.kind === 'trade') return `<div style="background:#0a1020;padding:8px 12px;border-radius:10px;border:1px solid #27ae6044;min-width:180px">
+                <div style="font-weight:800;color:#27ae60;margin-bottom:4px">Trade: ${d.source} → ${d.target}</div>
+                <div style="font-size:11px;color:#fff;margin-bottom:4px"><b>Goods:</b> ${d.goods.join(', ')}</div>
+                <div style="font-size:11px;color:#8aa"><b>Value:</b> ${d.value}</div>
+                <div style="font-size:11px;color:#8aa"><b>Corridor:</b> ${d.corridor}</div>
+              </div>`;
+              return `<div style="background:#0a1020;padding:6px 10px;border-radius:6px;color:#fff;font-size:12px;border:1px solid ${
+                d.kind === 'shipping' ? '#1abc9c' : '#a29bfe'}44">${d.name}</div>`;
+            }}
+            onArcClick={(d) => {
+              if (d.kind === 'trade') {
+                setSelectedTrade({ country: d.source, connections: [d] });
+              }
+            }}
           />
 
           {/* Event Type Legend */}
@@ -444,7 +571,7 @@ export default function ConflictGlobe() {
             <div style={{ padding: '14px', background: 'rgba(231,76,60,0.06)', borderBottom: `1px solid ${LEVEL_COLOR[selectedCountry.level]}33`, flexShrink: 0 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div>
-                  <div style={{ fontSize: '18px', fontWeight: '900', color: '#fff' }}>{selectedCountry.emoji} {selectedCountry.name}</div>
+                  <div style={{ fontSize: '18px', fontWeight: '900', color: '#fff' }}>{selectedCountry.name}</div>
                   <span style={{ background: LEVEL_COLOR[selectedCountry.level], color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: '700' }}>
                     {selectedCountry.level} {selectedCountry.score}/100
                   </span>
@@ -463,74 +590,137 @@ export default function ConflictGlobe() {
                 onClick={() => navigate(`/narrative?topic=${encodeURIComponent(selectedCountry.name)}&symbol=${selectedCountry.symbol || 'CL=F'}`)}
                 style={{ width: '100%', padding: '8px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: LEVEL_COLOR[selectedCountry.level], color: '#fff', fontWeight: '800', fontSize: '12px', letterSpacing: '0.5px' }}
               >
-                ⚡ Launch Intelligence Analysis
+                Launch Intelligence Analysis
               </button>
             </div>
           )}
 
-          {/* News Items */}
+          {/* News Items / Trade Items */}
           <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#1e2d4a #0d1527' }}>
-
-            {/* Loading */}
-            {feedLoading && (
-              <div style={{ padding: '24px', textAlign: 'center', color: '#5a7a9a' }}>
-                <div style={{ fontSize: '24px', marginBottom: '8px', animation: 'spin 1.5s linear infinite', display: 'inline-block' }}>⟳</div>
-                <div style={{ fontSize: '12px' }}>Fetching live intelligence...</div>
-              </div>
-            )}
-
-            {/* Error */}
-            {!feedLoading && feedError && (
-              <div style={{ padding: '20px', textAlign: 'center' }}>
-                <div style={{ color: '#e74c3c', fontSize: '12px', marginBottom: '10px' }}>⚠ Failed to load live feed</div>
-                <button onClick={fetchLiveFeed} style={{ padding: '6px 16px', borderRadius: '6px', border: '1px solid #e74c3c', background: 'transparent', color: '#e74c3c', cursor: 'pointer', fontSize: '12px' }}>
-                  ↺ Retry
-                </button>
-              </div>
-            )}
-
-            {/* News items */}
-            {!feedLoading && !feedError && newsFeed.filter(item => {
-              if (activeTab === 'All') return true;
-              const cleanCountry = item.country.replace(/[\u{1F1E0}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim();
-              return MARKER_REGION[activeTab]?.includes(cleanCountry);
-            }).map(item => {
-              const evType = EVENT_TYPES[item.type] || EVENT_TYPES.military;
-              return (
-                <a
-                  key={item.id}
-                  href={item.link || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ display: 'block', textDecoration: 'none', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', transition: 'background 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                >
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                    {/* Colored dot indicator */}
-                    <div style={{ width: 9, height: 9, borderRadius: '50%', background: evType.color, flexShrink: 0, marginTop: '5px' }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '11px', color: '#5a7a9a' }}>{item.ago}</span>
-                        <span style={{ fontSize: '10px', color: '#3498db' }}>↗ {item.source}</span>
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#7a9aaa', marginBottom: '4px', fontWeight: '600' }}>
-                        {item.country.replace(/[\u{1F1E0}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim()}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#b0c8d8', lineHeight: '1.5' }}>{item.text}</div>
+            
+            {isTradeMode && (
+              <div style={{ padding: '16px' }}>
+                <div style={{ fontSize: '12px', color: '#27ae60', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
+                   Global Trade Hub
+                </div>
+                {selectedTrade ? (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', background: 'rgba(39,174,96,0.1)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(39,174,96,0.2)' }}>
+                       <span style={{ fontSize: '14px', fontWeight: '800', color: '#fff' }}>{selectedTrade.country} Links</span>
+                       <button onClick={() => setSelectedTrade(null)} style={{ background: 'none', border: 'none', color: '#5a7a9a', cursor: 'pointer' }}>✕</button>
                     </div>
+                    {selectedTrade.connections.map((t, i) => (
+                      <div key={i} style={{ padding: '14px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '12px' }}>
+                        <div style={{ fontSize: '11px', color: '#27ae60', fontWeight: '700', marginBottom: '4px' }}>{t.source} ➔ {t.target}</div>
+                        <div style={{ fontSize: '13px', color: '#fff', fontWeight: '700', marginBottom: '8px' }}>{t.corridor}</div>
+                        <div style={{ fontSize: '12px', color: '#b0c8d8', marginBottom: '4px' }}><b>Trade Value:</b> {t.value}</div>
+                        <div style={{ fontSize: '12px', color: '#b0c8d8', marginBottom: '4px' }}><b>Volume:</b> {t.volume}</div>
+                        <div style={{ fontSize: '12px', color: '#b0c8d8', marginBottom: '8px' }}><b>Main Goods:</b> {t.goods.join(', ')}</div>
+                        <div style={{ padding: '8px', background: 'rgba(231,76,60,0.1)', borderRadius: '4px', fontSize: '11px', color: '#e74c3c' }}>
+                           <b>Risk Factors:</b> {t.risk_factors}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </a>
-              );
-            })}
-
-            {/* Empty */}
-            {!feedLoading && !feedError && newsFeed.length === 0 && (
-              <div style={{ padding: '24px', textAlign: 'center', color: '#5a7a9a', fontSize: '12px' }}>
-                No conflict news found at this time.
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '40px 20px', color: '#5a7a9a' }}>
+                    <div style={{ fontSize: '13px', lineHeight: '1.5', marginTop: '20px' }}>Click any <b>Trade Arc</b> on the globe or <b>Select a Country</b> to view deep-dive economic links and risk analysis.</div>
+                  </div>
+                )}
               </div>
             )}
+
+            {!isTradeMode && (() => {
+              if (selectedYear !== 'Live') {
+                const histFiltered = HISTORICAL_DATA
+                  .filter(d => d.year === parseInt(selectedYear))
+                  .filter(item => {
+                    if (activeTab === 'All') return true;
+                    const clean = item.country.replace(/[\u{1F1E0}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim();
+                    return MARKER_REGION[activeTab]?.includes(clean);
+                  });
+
+                return histFiltered.map((item, idx) => {
+                  const evType = EVENT_TYPES[item.type] || EVENT_TYPES.military;
+                  return (
+                    <div key={`hist-${idx}`} style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)', cursor: 'default', transition: 'background 0.15s' }}>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <div style={{ width: 9, height: 9, borderRadius: '50%', background: evType.color, flexShrink: 0, marginTop: '5px' }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <span style={{ fontSize: '11px', color: '#5a7a9a' }}>{item.date}</span>
+                            <span style={{ fontSize: '10px', color: evType.color, fontWeight: '700' }}>{evType.label}</span>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#7a9aaa', marginBottom: '4px', fontWeight: '600' }}>{item.country}</div>
+                          <div style={{ fontSize: '12.5px', color: '#fff', fontWeight: '700', marginBottom: '4px' }}>{item.title}</div>
+                          <div style={{ fontSize: '12px', color: '#b0c8d8', lineHeight: '1.5' }}>{item.news}</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                });
+              }
+
+              // Normal Live Feed logic
+              if (feedLoading) return (
+                <div style={{ padding: '24px', textAlign: 'center', color: '#5a7a9a' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px', animation: 'spin 1.5s linear infinite', display: 'inline-block' }}>⟳</div>
+                  <div style={{ fontSize: '12px' }}>Fetching live intelligence...</div>
+                </div>
+              );
+
+              if (feedError) return (
+                <div style={{ padding: '20px', textAlign: 'center' }}>
+                  <div style={{ color: '#e74c3c', fontSize: '12px', marginBottom: '10px' }}>⚠ Failed to load live feed</div>
+                  <button onClick={fetchLiveFeed} style={{ padding: '6px 16px', borderRadius: '6px', border: '1px solid #e74c3c', background: 'transparent', color: '#e74c3c', cursor: 'pointer', fontSize: '12px' }}>
+                    ↺ Retry
+                  </button>
+                </div>
+              );
+
+              const liveFiltered = newsFeed.filter(item => {
+                if (activeTab === 'All') return true;
+                const cleanCountry = item.country.replace(/[\u{1F1E0}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim();
+                return MARKER_REGION[activeTab]?.includes(cleanCountry);
+              });
+
+              if (liveFiltered.length === 0) return (
+                <div style={{ padding: '24px', textAlign: 'center', color: '#5a7a9a', fontSize: '12px' }}>
+                  No conflict news found at this time.
+                </div>
+              );
+
+              return liveFiltered.map(item => {
+                const evType = EVENT_TYPES[item.type] || EVENT_TYPES.military;
+                return (
+                  <a
+                    key={item.id}
+                    href={item.link || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'block', textDecoration: 'none', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <div style={{ width: 9, height: 9, borderRadius: '50%', background: evType.color, flexShrink: 0, marginTop: '5px' }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                          <span style={{ fontSize: '11px', color: '#5a7a9a' }}>{item.ago}</span>
+                          <span style={{ fontSize: '10px', color: '#3498db' }}>↗ {item.source}</span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#7a9aaa', marginBottom: '4px', fontWeight: '600' }}>
+                          {item.country.replace(/[\u{1F1E0}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim()}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#b0c8d8', lineHeight: '1.5' }}>{item.text}</div>
+                      </div>
+                    </div>
+                  </a>
+                );
+              });
+            })()}
           </div>
+
 
         </div>
       </div>
