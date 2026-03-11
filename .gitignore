@@ -1,0 +1,43 @@
+# ---- Node.js ----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ---- Environment variables (NEVER commit these) ----
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# ---- Build outputs ----
+dist/
+build/
+frontend/dist/
+
+# ---- Vite ----
+*.local
+
+# ---- Logs ----
+logs/
+*.log
+
+# ---- OS files ----
+.DS_Store
+Thumbs.db
+
+# ---- Editor ----
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ---- MongoDB local data ----
+data/
+
+# ---- Coverage ----
+coverage/
