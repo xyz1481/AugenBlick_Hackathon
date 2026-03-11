@@ -102,9 +102,10 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 2rem 4rem;
   width: 100%;
+  overflow: hidden;
 }
+
 
 .hero {
   text-align: center;

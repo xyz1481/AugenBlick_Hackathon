@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 const AnalysisDashboard = () => {
-  const [topic, setTopic] = useState('Oil Supply Crisis');
-  const [symbol, setSymbol] = useState('CL=F'); // Crude Oil
+  const [searchParams] = useSearchParams();
+  const [topic, setTopic] = useState(searchParams.get('topic') || 'Oil Supply Crisis');
+  const [symbol, setSymbol] = useState(searchParams.get('symbol') || 'CL=F');
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);

@@ -12,6 +12,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api/analysis', require('./routes/analysisRoutes'));
+app.use('/api/live', require('./routes/liveFeedRoutes'));
+
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the AugenBlick API' });
