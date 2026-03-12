@@ -4,7 +4,13 @@
  * Shows category-aware widgets for CONFLICT (WORLD), FINANCE, and COMMODITIES modes.
  */
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
 import { Globe as GlobeIcon, AlertTriangle } from "lucide-react";
 import GLOBAL_INTEL from "../data/globalIntel.json";
 import API_BASE_URL from "../api/config";
@@ -1613,24 +1619,30 @@ export default function WidgetPanel({ viewMode, newsFeed = [] }) {
   const [panelHeight, setPanelHeight] = useState(230);
   const dragState = useRef(null); // { startY, startHeight }
 
-  const onDragStart = useCallback((e) => {
-    e.preventDefault();
-    dragState.current = { startY: e.clientY, startHeight: panelHeight };
+  const onDragStart = useCallback(
+    (e) => {
+      e.preventDefault();
+      dragState.current = { startY: e.clientY, startHeight: panelHeight };
 
-    const onMove = (mv) => {
-      if (!dragState.current) return;
-      const delta = dragState.current.startY - mv.clientY; // drag UP = bigger
-      const next = Math.min(520, Math.max(110, dragState.current.startHeight + delta));
-      setPanelHeight(next);
-    };
-    const onUp = () => {
-      dragState.current = null;
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  }, [panelHeight]);
+      const onMove = (mv) => {
+        if (!dragState.current) return;
+        const delta = dragState.current.startY - mv.clientY; // drag UP = bigger
+        const next = Math.min(
+          520,
+          Math.max(110, dragState.current.startHeight + delta),
+        );
+        setPanelHeight(next);
+      };
+      const onUp = () => {
+        dragState.current = null;
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    },
+    [panelHeight],
+  );
 
   // ── Live market / commodity / BTC data from backend (Yahoo Finance)
   const [liveMarkets, setLiveMarkets] = useState(null);
@@ -1808,8 +1820,16 @@ export default function WidgetPanel({ viewMode, newsFeed = [] }) {
       >
         {/* grip dots */}
         <div style={{ display: "flex", gap: "3px" }}>
-          {[0,1,2,3,4].map((i) => (
-            <div key={i} style={{ width: 3, height: 3, borderRadius: "50%", background: "#2a4060" }} />
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              style={{
+                width: 3,
+                height: 3,
+                borderRadius: "50%",
+                background: "#2a4060",
+              }}
+            />
           ))}
         </div>
       </div>

@@ -1,3 +1,4 @@
+const WebSocket = require('ws');
 const axios = require('axios');
 
 const MAJOR_AIR_CORRIDORS = [
@@ -22,6 +23,7 @@ let activeFlights = [];
 let activeShips = [];
 let cachedLiveFlights = [];
 let lastFlightFetch = 0;
+let aisVessels = new Map(); // Store live AIS vessels by MMSI
 
 const initializeTracks = () => {
     // Simulated Aircraft (Fallback/Military)
@@ -64,6 +66,82 @@ const initializeTracks = () => {
             chokepoint: chokepoint.name
         });
     }
+};
+
+const startAISStream = () => {
+    const API_KEY = process.env.AISSTREAM_API_KEY;
+    if (!API_KEY) {
+        console.warn('[TrackingService] ⚓ AISSTREAM_API_KEY missing. AIS real-time maritime tracking disabled.');
+        return;
+    }
+
+    console.log('[TrackingService] ⚓ Initializing AISStream WebSocket connection...');
+    const socket = new WebSocket('wss://stream.aisstream.io/v0/stream');
+
+    socket.on('open', () => {
+        const subMsg = {
+            APIKey: API_KEY,
+            BoundingBoxes: [[[-90, -180], [90, 180]]] // Global tracking
+        };
+        socket.send(JSON.stringify(subMsg));
+        console.log('[TrackingService] 🚢 AISStream Subscribed to Global Maritime Vectors.');
+    });
+
+    socket.on('message', (data) => {
+        try {
+            const aisMsg = JSON.parse(data);
+            if (!aisMsg || !aisMsg.MetaData) return;
+
+            const mmsi = aisMsg.MetaData.MMSI;
+            const shipName = aisMsg.MetaData.ShipName ? aisMsg.MetaData.ShipName.trim() : `MMSI:${mmsi}`;
+            
+            // Focus on Position Reports (MessageTypes 1, 2, 3)
+            let lat, lon, speed;
+            if (aisMsg.MessageType === 'PositionReport') {
+                lat = aisMsg.Message.PositionReport.Latitude;
+                lon = aisMsg.Message.PositionReport.Longitude;
+                speed = aisMsg.Message.PositionReport.Sog;
+            } else {
+                return; // Only track position for now to keep it efficient
+            }
+
+            if (lat && lon) {
+                // Update or add vessel
+                aisVessels.set(mmsi, {
+                    id: `AIS-${mmsi}`,
+                    type: 'vessel',
+                    name: shipName,
+                    lat: lat,
+                    lng: lon,
+                    speed: speed || 0,
+                    status: 'Live AIS',
+                    chokepoint: 'Global Waters',
+                    isAPI: true,
+                    lastSeen: Date.now()
+                });
+
+                // Periodic cleanup of stale vessels (older than 15 mins)
+                if (aisVessels.size > 500) {
+                   const now = Date.now();
+                   for (let [id, v] of aisVessels) {
+                       if (now - v.lastSeen > 900000) aisVessels.delete(id);
+                       if (aisVessels.size <= 400) break;
+                   }
+                }
+            }
+        } catch (err) {
+            // Silently handle parse errors to keep stream alive
+        }
+    });
+
+    socket.on('error', (err) => {
+        console.error('[TrackingService] 🚢 AISStream WebSocket Error:', err.message);
+    });
+
+    socket.on('close', () => {
+        console.warn('[TrackingService] 🚢 AISStream connection closed. Reconnecting in 30s...');
+        setTimeout(startAISStream, 30000);
+    });
 };
 
 const fetchAviationStackData = async () => {
@@ -121,10 +199,6 @@ const fetchAviationStackData = async () => {
         }
     } catch (err) {
         console.error('[TrackingService] ❌ Critical Transport Error:', err.message);
-        if (err.response) {
-            console.error('[TrackingService] Response Status:', err.response.status);
-            console.error('[TrackingService] Response Data:', err.response.data);
-        }
         return null;
     }
     return null;
@@ -160,15 +234,17 @@ const updatePositions = () => {
 };
 
 initializeTracks();
+startAISStream();
 setInterval(updatePositions, 3000);
 
 const getLiveTrackingData = async () => {
     const liveFlights = await fetchAviationStackData();
+    const liveAIS = Array.from(aisVessels.values());
     
     return {
         timestamp: new Date().toISOString(),
         flights: liveFlights ? [...liveFlights, ...activeFlights] : activeFlights.slice(0, 80),
-        vessels: activeShips
+        vessels: [...liveAIS, ...activeShips]
     };
 };
 
