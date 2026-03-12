@@ -1,12 +1,33 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
     const location = useLocation();
+    const navigate = useNavigate();
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch (e) {
+                console.error("Failed to parse user from localStorage", e);
+            }
+        }
+    }, [location]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+        navigate('/');
+    };
 
     const navLinks = [
         { name: 'Home', path: '/' },
         { name: 'Narrative', path: '/narrative' },
+        { name: 'Market', path: '/market' },
         { name: 'Simulator', path: '/simulator' },
         { name: 'Supply Chains', path: '/supply-chains' },
     ];
@@ -18,9 +39,9 @@ const Navbar = () => {
             </div>
             <div className="nav-links">
                 {navLinks.map((link) => (
-                    <Link 
-                        key={link.path} 
-                        to={link.path} 
+                    <Link
+                        key={link.path}
+                        to={link.path}
                         className={`nav-link ${location.pathname === link.path ? 'active' : ''}`}
                     >
                         {link.name}
@@ -28,7 +49,19 @@ const Navbar = () => {
                 ))}
             </div>
             <div className="nav-actions">
-                <div className="badge" style={{ padding: '0.4rem 0.8rem', fontSize: '0.7rem' }}>v1.0.0-beta</div>
+                {user ? (
+                    <div className="user-profile">
+                        <div className="profile-icon" title={user.email}>
+                            {user.email.substring(0, 2).toUpperCase()}
+                        </div>
+                        <button onClick={handleLogout} className="logout-btn">Logout</button>
+                    </div>
+                ) : (
+                    <div className="auth-links">
+                        <Link to="/login" className="nav-link">Login</Link>
+                        <Link to="/signup" className="nav-link">Signup</Link>
+                    </div>
+                )}
             </div>
         </nav>
     );

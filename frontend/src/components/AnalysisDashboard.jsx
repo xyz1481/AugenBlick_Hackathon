@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import API_BASE_URL from '../api/config';
 
 const AnalysisDashboard = () => {
-  const [topic, setTopic] = useState('Oil Supply Crisis');
-  const [symbol, setSymbol] = useState('CL=F'); // Crude Oil
+  const [searchParams] = useSearchParams();
+  const [topic, setTopic] = useState(searchParams.get('topic') || 'Oil Supply Crisis');
+  const [symbol, setSymbol] = useState(searchParams.get('symbol') || 'CL=F');
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -13,7 +16,7 @@ const AnalysisDashboard = () => {
     setResult(null);
     setError(null);
     try {
-      const response = await fetch('http://localhost:5000/api/analysis/analyze', {
+      const response = await fetch(`${API_BASE_URL}/api/analysis/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic, symbol })

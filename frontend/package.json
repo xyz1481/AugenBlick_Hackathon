@@ -10,9 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "framer-motion": "^12.35.2",
+    "lightweight-charts": "^5.1.0",
+    "lodash": "^4.17.23",
+    "lucide-react": "^0.577.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.13.1"
+    "react-globe.gl": "^2.37.0",
+    "react-router-dom": "^7.13.1",
+    "react-zoom-pan-pinch": "^3.7.0",
+    "recharts": "^3.8.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
