@@ -18,6 +18,7 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/api/analysis', require('./routes/analysisRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/live', require('./routes/liveFeedRoutes'));
 app.use('/api/market', require('./routes/marketRoutes'));
 app.use('/api/simulator', require('./routes/simulationRoutes'));
