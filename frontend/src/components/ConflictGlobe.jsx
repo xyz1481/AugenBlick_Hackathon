@@ -3,6 +3,7 @@ import Globe from 'react-globe.gl';
 import { useNavigate } from 'react-router-dom';
 import HISTORICAL_DATA from '../data/historicalConflicts.json';
 import TRADE_DATA from '../data/trade.json';
+import API_BASE_URL from '../api/config';
 
 // ── Event Types ─────────────────────────────────────────────────────────────
 const EVENT_TYPES = {
@@ -188,8 +189,9 @@ export default function ConflictGlobe() {
   const [selectedYear, setSelectedYear] = useState('Live'); 
   const [isTradeMode, setIsTradeMode] = useState(false);
   const [selectedTrade, setSelectedTrade] = useState(null);
-  // activeOverlays: Set of 'shipping' | 'flights'
-  const [activeOverlays, setActiveOverlays] = useState(new Set());
+  const [trackingData, setTrackingData] = useState({ flights: [], vessels: [] });
+  // activeOverlays: Set of 'shipping' | 'flights' | 'liveFlights' | 'liveShips'
+  const [activeOverlays, setActiveOverlays] = useState(new Set(['liveFlights', 'liveShips']));
 
   const toggleOverlay = (key) => {
     setActiveOverlays(prev => {
@@ -225,7 +227,7 @@ export default function ConflictGlobe() {
     try {
       setFeedLoading(true);
       setFeedError(false);
-      const res = await fetch('http://localhost:5000/api/live/feed');
+      const res = await fetch(`${API_BASE_URL}/api/live/feed`);
       if (!res.ok) throw new Error('Feed fetch failed');
       const data = await res.json();
       setNewsFeed(data.news || []);
@@ -237,12 +239,28 @@ export default function ConflictGlobe() {
     }
   }, []);
 
+  // Fetch live tracking (Aircraft/Ships)
+  const fetchTracking = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/tracking/live`);
+      if (!res.ok) throw new Error('Tracking fetch failed');
+      const data = await res.json();
+      setTrackingData(data);
+    } catch (e) {
+      console.error('[Tracking] Error:', e.message);
+    }
+  }, []);
+
   useEffect(() => {
     fetchLiveFeed();
-    // Auto-refresh every 5 minutes
-    const id = setInterval(fetchLiveFeed, 5 * 60 * 1000);
-    return () => clearInterval(id);
-  }, [fetchLiveFeed]);
+    fetchTracking();
+    const feedInterval = setInterval(fetchLiveFeed, 300000); // 5 mins
+    const trackInterval = setInterval(fetchTracking, 10000); // 10 secs
+    return () => {
+      clearInterval(feedInterval);
+      clearInterval(trackInterval);
+    };
+  }, [fetchLiveFeed, fetchTracking]);
 
 
   // Fetch GeoJSON (Low resolution for performance)
@@ -417,16 +435,21 @@ export default function ConflictGlobe() {
         {/* Overlay Toggles — Shipping & Flights */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 12px', borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
           <span style={{ fontSize: '10px', color: '#5a7a9a', textTransform: 'uppercase', letterSpacing: '1px', marginRight: '4px' }}>Overlay</span>
-          {[{ key: 'shipping', label: 'Shipping', color: '#1abc9c' }, { key: 'flights', label: 'Flights', color: '#a29bfe' }].map(({ key, label, color }) => (
+          {[
+            { key: 'shipping', label: 'Route: Sea', color: '#1abc9c' }, 
+            { key: 'flights', label: 'Route: Air', color: '#a29bfe' },
+            { key: 'liveFlights', label: 'Live Air', color: '#a29bfe' },
+            { key: 'liveShips', label: 'Live Sea', color: '#1abc9c' }
+          ].map(({ key, label, color }) => (
             <button key={key} onClick={() => toggleOverlay(key)} style={{
-              padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700',
+              padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '10px', fontWeight: '800',
               background: activeOverlays.has(key) ? color : 'transparent',
               color: activeOverlays.has(key) ? '#000' : '#5a7a9a',
               border: `1px solid ${activeOverlays.has(key) ? color : 'rgba(255,255,255,0.1)'}`,
               transition: 'all 0.15s',
               whiteSpace: 'nowrap'
             }}>
-              {activeOverlays.has(key) ? '◉' : '○'} {label}
+              {activeOverlays.has(key) ? '☑' : '☐'} {label}
             </button>
           ))}
         </div>
@@ -445,6 +468,24 @@ export default function ConflictGlobe() {
             {isTradeMode ? 'Trade Mode Active' : 'Trade Intel'}
           </button>
         </div>
+
+        {/* Tracking Summary Integration */}
+        {(activeOverlays.has('liveFlights') || activeOverlays.has('liveShips')) && (
+          <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginLeft: 'auto', marginRight: '20px', padding: '4px 12px', background: 'rgba(52,152,219,0.1)', border: '1px solid rgba(52,152,219,0.2)', borderRadius: '6px' }}>
+             {activeOverlays.has('liveFlights') && (
+               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="live-pulse" style={{ background: '#a29bfe' }}></span>
+                  <span style={{ fontSize: '10px', color: '#a29bfe', fontWeight: '800' }}>SIGINT: {trackingData.flights?.length || 0}</span>
+               </div>
+             )}
+             {activeOverlays.has('liveShips') && (
+               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="live-pulse" style={{ background: '#1abc9c' }}></span>
+                  <span style={{ fontSize: '10px', color: '#1abc9c', fontWeight: '800' }}>MARINE: {trackingData.vessels?.length || 0}</span>
+               </div>
+             )}
+          </div>
+        )}
 
         {/* Legend */}
         <div style={{ display: 'flex', gap: '12px', paddingLeft: '12px', borderLeft: '1px solid rgba(255,255,255,0.08)', fontSize: '10px', color: '#5a7a9a' }}>
@@ -537,6 +578,72 @@ export default function ConflictGlobe() {
               if (d.kind === 'trade') {
                 setSelectedTrade({ country: d.source, connections: [d] });
               }
+            }}
+            // ── Live Tracking ──
+            htmlElementsData={[
+              ...(activeOverlays.has('liveFlights') ? (trackingData.flights || []) : []),
+              ...(activeOverlays.has('liveShips') ? (trackingData.vessels || []) : [])
+            ]}
+            htmlLat="lat"
+            htmlLng="lng"
+            htmlElement={(d) => {
+              const el = document.createElement('div');
+              const isFlight = d.type === 'aircraft';
+              const color = isFlight ? '#a29bfe' : '#1abc9c';
+              const rotation = isFlight ? (d.direction > 0 ? 90 : 270) : 0;
+              
+              const planeSvg = `
+                <svg viewBox="0 0 24 24" fill="${color}" width="14" height="14" style="transform: rotate(${rotation}deg); filter: drop-shadow(0 0 4px ${color}); transition: transform 0.2s;">
+                  <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                </svg>
+              `;
+
+              const shipSvg = `
+                <svg viewBox="0 0 24 24" fill="${color}" width="18" height="18" style="filter: drop-shadow(0 0 4px ${color}); transition: transform 0.2s;">
+                  <path d="M19.14,12.94L17.58,16.59C17.03,17.9 15.75,18.75 14.34,18.75H11.66C10.25,18.75 8.97,17.9 8.42,16.59L6.86,12.94C6.55,12.21 6.64,11.39 7.1,10.74L8.75,8.4L8.71,3H15.29L15.25,8.4L16.9,10.74C17.36,11.39 17.45,12.21 19.14,12.94M12,1.5C10.62,1.5 9.5,2.62 9.5,4V5H14.5V4C14.5,2.62 13.38,1.5 12,1.5Z"/>
+                </svg>
+              `;
+
+              el.innerHTML = `
+                <div class="tracking-container" style="cursor: pointer; position: relative; pointer-events: auto;">
+                  <div class="icon-wrapper">
+                    ${isFlight ? planeSvg : shipSvg}
+                  </div>
+                  <div class="tracking-label" style="
+                    position: absolute;
+                    top: -32px;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(5px);
+                    background: rgba(6,11,24,0.98);
+                    padding: 5px 10px;
+                    border-radius: 6px;
+                    font-size: 10px;
+                    color: ${color};
+                    font-weight: 800;
+                    white-space: nowrap;
+                    border: 1px solid ${color}88;
+                    pointer-events: none;
+                    opacity: 0;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+                    z-index: 1000;
+                  ">
+                    <div style="font-size: 8px; opacity: 0.8; margin-bottom: 2px; color: #fff;">${isFlight ? 'SIGINT' : 'MARINE'}</div>
+                    <div style="color: ${color}">${isFlight ? d.callsign : d.name}</div>
+                    <div style="font-size: 8px; color: #7a9aaa; margin-top: 2px;">
+                       ${Math.round(d.speed)} ${isFlight ? 'KTS' : 'KN'} | ${d.type.toUpperCase()}
+                    </div>
+                  </div>
+                </div>
+              `;
+              
+              if (!isFlight && d.status === 'Delayed') {
+                el.children[0].children[0].style.fill = '#ff4757';
+                el.children[0].children[0].style.filter = 'drop-shadow(0 0 8px #ff4757)';
+                el.children[0].children[0].style.animation = 'livePulse 1.5s infinite';
+              }
+
+              return el;
             }}
           />
 
@@ -777,7 +884,11 @@ export default function ConflictGlobe() {
       })()}
 
       <style>{`
-        @keyframes livePulse { 0%,100%{opacity:1;box-shadow:0 0 8px #2ecc71} 50%{opacity:0.4;box-shadow:none} }
+        .live-pulse { width: 6px; height: 6px; border-radius: 50%; display: inline-block; animation: livePulse 1.5s infinite; }
+        .tracking-container:hover .tracking-label { opacity: 1 !important; transform: translateX(-50%) translateY(0) !important; }
+        .tracking-container:hover svg { transform: scale(1.6) !important; filter: drop-shadow(0 0 8px currentColor); }
+        
+        @keyframes livePulse { 0%,100%{opacity:1; filter: brightness(1.2); } 50%{opacity:0.4; filter: brightness(0.8); } }
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes markerRing {
           0%   { transform: scale(0.6); opacity: 0.8; }

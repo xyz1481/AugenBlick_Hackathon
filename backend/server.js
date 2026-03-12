@@ -21,6 +21,7 @@ app.use('/api/analysis', require('./routes/analysisRoutes'));
 app.use('/api/live', require('./routes/liveFeedRoutes'));
 app.use('/api/market', require('./routes/marketRoutes'));
 app.use('/api/simulator', require('./routes/simulationRoutes'));
+app.use('/api/tracking', require('./routes/trackingRoutes'));
 
 
 app.get('/', (req, res) => {

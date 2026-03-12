@@ -6,7 +6,8 @@ import {
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { createChart, ColorType, SeriesType } from 'lightweight-charts';
+import { createChart, ColorType } from 'lightweight-charts';
+import API_BASE_URL from '../api/config';
 
 const CATEGORIES = [
   { id: 'macro', label: 'Macro & Risk', icon: <Globe size={18} /> },
@@ -41,7 +42,7 @@ const MarketChart = ({ symbol, data }) => {
       height,
     });
 
-    const candleSeries = chart.addSeries(SeriesType.Candlestick, {
+    const candleSeries = chart.addCandlestickSeries({
       upColor: '#10b981',
       downColor: '#ef4444',
       borderVisible: false,
@@ -93,8 +94,7 @@ const Market = () => {
   const fetchMarketData = async () => {
     try {
       setLoading(true);
-      const baseUrl = 'http://localhost:5000';
-      const res = await fetch(`${baseUrl}/api/market/war-watch`);
+      const res = await fetch(`${API_BASE_URL}/api/market/war-watch`);
       if (!res.ok) throw new Error(`Market fetch failed: ${res.status}`);
       const data = await res.json();
       setMarketData(data);
@@ -112,8 +112,7 @@ const Market = () => {
   const fetchHistory = async (symbol) => {
     try {
       setHistoryLoading(true);
-      const baseUrl = 'http://localhost:5000';
-      const res = await fetch(`${baseUrl}/api/market/history/${encodeURIComponent(symbol)}?period=1y`);
+      const res = await fetch(`${API_BASE_URL}/api/market/history/${encodeURIComponent(symbol)}?period=1y`);
       if (!res.ok) throw new Error(`History fetch failed: ${res.status}`);
       const data = await res.json();
       setHistoricalData(data);

@@ -8,6 +8,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area, LineChart, Line, Cell
 } from 'recharts';
+import API_BASE_URL from '../api/config';
 
 const COUNTRIES = [
   'United States', 'Russia', 'China', 'India', 'Germany', 'United Kingdom', 
@@ -41,8 +42,7 @@ const Simulator = () => {
     setStep(2);
 
     try {
-      const baseUrl = 'http://localhost:5000';
-      const res = await fetch(`${baseUrl}/api/simulator/simulate`, {
+      const res = await fetch(`${API_BASE_URL}/api/simulator/simulate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sideA, sideB })

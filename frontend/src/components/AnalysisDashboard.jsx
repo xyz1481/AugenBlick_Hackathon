@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import API_BASE_URL from '../api/config';
 
 const AnalysisDashboard = () => {
   const [searchParams] = useSearchParams();
@@ -15,8 +16,7 @@ const AnalysisDashboard = () => {
     setResult(null);
     setError(null);
     try {
-      const baseUrl = 'http://localhost:5000';
-      const response = await fetch(`${baseUrl}/api/analysis/analyze`, {
+      const response = await fetch(`${API_BASE_URL}/api/analysis/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic, symbol })
