@@ -26,6 +26,7 @@ const Navbar = () => {
 
     const navLinks = [
         { name: 'Home', path: '/' },
+        { name: 'Intel Agent', path: '/intel-agent' },
         { name: 'Narrative', path: '/narrative' },
         { name: 'Market', path: '/market' },
         { name: 'Simulator', path: '/simulator' },
@@ -35,7 +36,7 @@ const Navbar = () => {
     return (
         <nav className="navbar">
             <div className="nav-logo">
-                <Link to="/">AugenBlick<span>.</span></Link>
+                <Link to="/">Reality<span>.</span></Link>
             </div>
             <div className="nav-links">
                 {navLinks.map((link) => (

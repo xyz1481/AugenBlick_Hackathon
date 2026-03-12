@@ -1,6 +1,6 @@
 /**
  * WidgetPanel.jsx
- * Standalone scrollable bottom widget panel for the AugenBlick dashboard.
+ * Standalone scrollable bottom widget panel for the Reality dashboard.
  * Shows category-aware widgets for CONFLICT (WORLD), FINANCE, and COMMODITIES modes.
  */
 
@@ -809,10 +809,10 @@ function InstabilityCard({ instabilityData }) {
     instabilityData && instabilityData.length
       ? instabilityData
       : INSTABILITY_BASE.map((b) => ({
-          country: b.country,
-          score: b.base,
-          color: b.base > 85 ? "#e74c3c" : b.base > 72 ? "#e67e22" : "#f1c40f",
-        }));
+        country: b.country,
+        score: b.base,
+        color: b.base > 85 ? "#e74c3c" : b.base > 72 ? "#e67e22" : "#f1c40f",
+      }));
   return (
     <PanelCard
       title="COUNTRY INSTABILITY"
@@ -1689,8 +1689,8 @@ export default function WidgetPanel({ viewMode, newsFeed = [] }) {
       try {
         const res = await fetch(
           "https://api.coingecko.com/api/v3/simple/price" +
-            "?ids=tether,usd-coin,dai" +
-            "&vs_currencies=usd&include_market_cap=true&include_24hr_change=true",
+          "?ids=tether,usd-coin,dai" +
+          "&vs_currencies=usd&include_market_cap=true&include_24hr_change=true",
         );
         if (!res.ok) return;
         const d = await res.json();

@@ -8,6 +8,7 @@ import SupplyChains from './pages/SupplyChains';
 import Market from './pages/Market';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
+import IntelAgent from './pages/IntelAgent';
 
 const AuthGate = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -61,15 +62,12 @@ function AppContent() {
           <Route path="/simulator" element={<AuthGate><Simulator /></AuthGate>} />
           <Route path="/supply-chains" element={<AuthGate><SupplyChains /></AuthGate>} />
           <Route path="/market" element={<AuthGate><Market /></AuthGate>} />
+          <Route path="/intel-agent" element={<AuthGate><IntelAgent /></AuthGate>} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
         </Routes>
       </main>
-      {!isHome && !isAuthPage && (
-        <footer style={{ padding: '2rem', textAlign: 'center', marginTop: '2rem' }}>
-          &copy; 2026 AugenBlick Dashboard • Intelligence &amp; Reality Engine
-        </footer>
-      )}
+
     </div>
   );
 }
