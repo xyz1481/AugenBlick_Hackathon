@@ -10,6 +10,8 @@ import Signup from './pages/Signup';
 import Login from './pages/Login';
 import IntelAgent from './pages/IntelAgent';
 import ConflictAnalyzer from './pages/ConflictAnalyzer';
+import CommunityPage from './pages/CommunityPage';
+
 
 const AuthGate = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -77,13 +79,12 @@ function AppContent() {
           <Route path="/supply-chains" element={<AuthGate><SupplyChains /></AuthGate>} />
           <Route path="/market" element={<AuthGate><Market /></AuthGate>} />
           <Route path="/intel-agent" element={<AuthGate><IntelAgent /></AuthGate>} />
-
+          <Route path="/community" element={<AuthGate><CommunityPage /></AuthGate>} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
 
         </Routes>
       </main>
-
     </div>
   );
 }

@@ -27,6 +27,7 @@ const Navbar = () => {
     const navLinks = [
         { name: 'Home', path: '/' },
         { name: 'Intel Agent', path: '/intel-agent' },
+        { name: 'Community', path: '/community' },
         { name: 'Narrative', path: '/narrative' },
         { name: 'Market', path: '/market' },
         { name: 'Simulator', path: '/simulator' },

@@ -106,7 +106,7 @@ const IntelAgent = () => {
         <header className="intel-header">
           <div className="intel-header-title">
             <h1>Reality Intelligence Agent</h1>
-            <p className="status-indicator"><span className="online"></span> Online • Powered by Groq Llama 3</p>
+            
           </div>
           <ModeToggle mode={mode} setMode={setMode} disabled={isThinking} />
         </header>
