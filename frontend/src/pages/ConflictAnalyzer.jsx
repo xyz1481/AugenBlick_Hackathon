@@ -4,6 +4,7 @@ import ControlPanel from '../components/ConflictAnalyzer/ControlPanel';
 import ConflictMap from '../components/ConflictAnalyzer/ConflictMap';
 import ImpactDashboard from '../components/ConflictAnalyzer/ImpactDashboard';
 import { ShieldAlert } from 'lucide-react';
+import API_BASE_URL from '../api/config';
 
 const ConflictAnalyzer = () => {
   const [simulationParams, setSimulationParams] = useState({
@@ -54,17 +55,26 @@ const ConflictAnalyzer = () => {
       setTimeout(async () => {
          // Resolve backend data
          try {
-           const response = await fetch('http://localhost:5000/api/conflict/simulate-conflict', {
+           const response = await fetch(`${API_BASE_URL}/api/conflict/simulate-conflict`, {
              method: 'POST',
              headers: { 'Content-Type': 'application/json' },
              body: JSON.stringify(simulationParams)
            });
+
+           if (!response.ok) {
+             throw new Error(`HTTP ${response.status}`);
+           }
+
            const data = await response.json();
            if (data.success) {
              setSimulationResults(data);
+           } else {
+             console.error("Simulation failed:", data);
+             alert("Simulation failed to return results. Please try again.");
            }
          } catch (error) {
            console.error("Simulation error:", error);
+           alert("Unable to run conflict simulation. Please check the backend service.");
          } finally {
             setIsSimulating(false);
             setStrikePhase(null); // Sequence completed

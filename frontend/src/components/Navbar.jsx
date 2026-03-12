@@ -10,6 +10,7 @@ const Navbar = () => {
         { name: 'Market', path: '/market' },
         { name: 'Simulator', path: '/simulator' },
         { name: 'Supply Chains', path: '/supply-chains' },
+        { name: 'Conflict Impact', path: '/conflict-impact' },
     ];
 
     return (
