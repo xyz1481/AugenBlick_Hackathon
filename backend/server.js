@@ -26,12 +26,14 @@ app.use('/api/live', require('./routes/liveFeedRoutes'));
 app.use('/api/market', require('./routes/marketRoutes'));
 app.use('/api/simulator', require('./routes/simulationRoutes'));
 app.use('/api/tracking', require('./routes/trackingRoutes'));
-<<<<<<< Updated upstream
 app.use('/api/intel', require('./routes/intelRoutes'));
 app.use('/api/posts', require('./routes/postRoutes'));
-=======
->>>>>>> Stashed changes
 app.use('/api/conflict', require('./routes/conflictRoutes'));
+app.use('/api/stability', require('./routes/stabilityRoutes'));
+app.use('/api/events', require('./routes/eventRoutes'));
+app.use('/api/systems', require('./routes/systemsRoutes'));
+app.use('/api/domino', require('./routes/dominoRoutes'));
+app.use('/api/stability', require('./routes/stabilityRoutes'));
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the AugenBlick API' });

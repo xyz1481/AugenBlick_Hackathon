@@ -45,6 +45,7 @@ import GLOBAL_INTEL from "../data/globalIntel.json";
 import API_BASE_URL from "../api/config";
 import { AiInsightsCard } from "./AiInsightsCard";
 import WidgetPanel from "./WidgetPanel";
+import GlobalStabilityPanel from "./GlobalStabilityPanel";
 
 // --- DATA DEFINITIONS ---
 
@@ -923,6 +924,8 @@ export default function ConflictGlobe() {
             overflow: "hidden",
           }}
         >
+          {/* High-level stability & impact dashboard overlay */}
+          <GlobalStabilityPanel />
           <AnimatePresence mode="wait">
             {projection === "3d" ? (
               <motion.div
