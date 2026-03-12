@@ -1,14 +1,24 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ShieldAlert, Globe, Zap, ArrowRight, TrendingUp, AlertTriangle, 
+  ShieldAlert, Globe as GlobeIcon, Zap, ArrowRight, TrendingUp, AlertTriangle, 
   BarChart2, Activity, PieChart, Users, ChevronRight, RefreshCcw, HandMetal
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area, LineChart, Line, Cell
 } from 'recharts';
+import WorldGlobe from 'react-globe.gl';
 import API_BASE_URL from '../api/config';
+
+const TARGET_COORDS = {
+  'United States': [37.09, -95.71], 'Russia': [61.52, 105.32], 'China': [35.86, 104.19],
+  'India': [20.59, 78.96], 'Germany': [51.17, 10.45], 'United Kingdom': [55.38, -3.44],
+  'Saudi Arabia': [23.89, 45.08], 'Australia': [-25.27, 133.78], 'Brazil': [-14.24, -51.93],
+  'Canada': [56.13, -106.35], 'Norway': [60.47, 8.47], 'Qatar': [25.35, 51.18],
+  'Indonesia': [-0.79, 113.92], 'Japan': [36.21, 138.25], 'South Korea': [35.91, 127.77],
+  'Taiwan': [23.7, 120.96], 'France': [46.23, 2.21], 'Egypt': [26.82, 30.8], 'Turkey': [38.96, 35.24]
+};
 
 const COUNTRIES = [
   'United States', 'Russia', 'China', 'India', 'Germany', 'United Kingdom', 
@@ -22,6 +32,24 @@ const Simulator = () => {
   const [simResult, setSimResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: Selection, 2: Simulation, 3: Results
+  const [isStrikeMode, setIsStrikeMode] = useState(false);
+  const [targetCountry, setTargetCountry] = useState(null);
+  const [weapon, setWeapon] = useState('Kinetic');
+  const [launching, setLaunching] = useState(false);
+  const [impacts, setImpacts] = useState([]); // [{lat, lng, size, color}]
+  const globeRef = useRef();
+
+  const populationStats = useMemo(() => {
+    if (!isStrikeMode || !targetCountry) return null;
+    const basePop = 8000; // Mock 8B global pop
+    const targetPop = 200; // Mock target country pop
+    const killed = weapon === 'Nuclear' ? Math.floor(Math.random() * 50) + 80 : Math.floor(Math.random() * 5) + 1;
+    return {
+      surviving: 100 - (killed / basePop * 100),
+      total: '8.03 B',
+      casualties: `${killed} M`
+    };
+  }, [isStrikeMode, targetCountry, weapon, impacts]);
 
   const addCountry = (name, side) => {
     if (side === 'A') {
@@ -37,34 +65,65 @@ const Simulator = () => {
   };
 
   const runSimulation = async () => {
-    if (sideA.length === 0 || sideB.length === 0) return;
+    if (!isStrikeMode) {
+      if (sideA.length === 0 || sideB.length === 0) return;
+    } else {
+      if (!targetCountry) return;
+    }
+    
     setLoading(true);
     setStep(2);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/simulator/simulate`, {
+      const endpoint = isStrikeMode ? '/api/simulator/strike' : '/api/simulator/simulate';
+      const body = isStrikeMode 
+        ? { targetCountry, weaponType: weapon }
+        : { sideA, sideB };
+
+      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sideA, sideB })
+        body: JSON.stringify(body)
       });
       
-      if (!res.ok) {
-        throw new Error(`Server responded with ${res.status}`);
-      }
-      
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
       
-      // Simulate "processing" time for effect
       setTimeout(() => {
         setSimResult(data);
         setStep(3);
         setLoading(false);
+        setLaunching(false);
       }, 2500);
     } catch (err) {
       console.error('Simulation engine failed:', err);
       setLoading(false);
       setStep(1);
     }
+  };
+
+  const handleStrike = () => {
+    if (!targetCountry) return;
+    const coords = TARGET_COORDS[targetCountry];
+    if (!coords) return;
+
+    setLaunching(true);
+    
+    // Animate Globe to target
+    if (globeRef.current) {
+      globeRef.current.pointOfView({ lat: coords[0], lng: coords[1], altitude: 1.5 }, 1000);
+    }
+
+    setTimeout(() => {
+      setImpacts([...impacts, { 
+        lat: coords[0], 
+        lng: coords[1], 
+        size: weapon === 'Nuclear' ? 30 : 10,
+        color: weapon === 'Nuclear' ? '#f1c40f' : '#e74c3c'
+      }]);
+      // Small delay for the "impact" feel before API call
+      setTimeout(runSimulation, 1200);
+    }, 1500);
   };
 
   const reset = () => {
@@ -81,12 +140,14 @@ const Simulator = () => {
       <div style={{ padding: '2rem 4rem', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <ShieldAlert size={24} color="#e74c3c" />
-              <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '900', letterSpacing: '1px' }}>CRISIS SIMULATOR</h1>
+              <ShieldAlert size={24} color={isStrikeMode ? "#f39c12" : "#e74c3c"} />
+              <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '900', letterSpacing: '1px' }}>
+                {isStrikeMode ? 'WARGAMES: STRIKE SIM' : 'CRISIS SIMULATOR'}
+              </h1>
            </div>
            <p style={{ color: '#5a7a9a', fontSize: '13px', margin: 0 }}>Projecting Global Economic Shifts via Reality Engine v2.0</p>
         </div>
-        
+
         <div style={{ display: 'flex', gap: '8px' }}>
            {[1, 2, 3].map(s => (
              <div key={s} style={{ 
@@ -101,7 +162,6 @@ const Simulator = () => {
       <div style={{ padding: '3rem 4rem' }}>
         <AnimatePresence mode="wait">
           
-          {/* STEP 1: DEFINE GEOPOLITICAL BLOCKS */}
           {step === 1 && (
             <motion.div 
               key="step1"
@@ -109,73 +169,222 @@ const Simulator = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
             >
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 120px minmax(0, 1fr)', gap: '2rem', alignItems: 'start' }}>
-                
-                {/* Alliance A Selection */}
-                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#3498db' }} />
-                    <span style={{ fontWeight: '800', letterSpacing: '2px', fontSize: '14px' }}>ALLIANCE ALPHA</span>
+              {/* Centralized Mode Toggle */}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '4rem' }}>
+                <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '20px', padding: '6px', display: 'flex', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+                  <button 
+                    onClick={() => setIsStrikeMode(false)}
+                    style={{ 
+                      padding: '14px 32px', borderRadius: '14px', border: 'none', fontSize: '12px', fontWeight: '900', cursor: 'pointer', letterSpacing: '2px',
+                      background: !isStrikeMode ? 'linear-gradient(to right, #6366f1, #22d3ee)' : 'transparent',
+                      color: !isStrikeMode ? '#fff' : '#5a7a9a',
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: !isStrikeMode ? '0 0 20px rgba(99, 102, 241, 0.3)' : 'none'
+                    }}
+                  >MACRO ECONOMICS</button>
+                  <button 
+                    onClick={() => setIsStrikeMode(true)}
+                    style={{ 
+                      padding: '14px 32px', borderRadius: '14px', border: 'none', fontSize: '12px', fontWeight: '900', cursor: 'pointer', letterSpacing: '2px',
+                      background: isStrikeMode ? 'linear-gradient(to right, #f39c12, #d35400)' : 'transparent',
+                      color: isStrikeMode ? '#fff' : '#5a7a9a',
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: isStrikeMode ? '0 0 20px rgba(243, 156, 18, 0.3)' : 'none'
+                    }}
+                  >STRATEGIC STRIKE</button>
+                </div>
+              </div>
+              {!isStrikeMode ? (
+                /* Original Alliance View */
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 120px minmax(0, 1fr)', gap: '2rem', alignItems: 'start' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#3498db' }} />
+                      <span style={{ fontWeight: '800', letterSpacing: '2px', fontSize: '14px' }}>ALLIANCE ALPHA</span>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', minHeight: '120px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.1)', marginBottom: '20px' }}>
+                      {sideA.length === 0 && <span style={{ color: '#5a7a9a', fontSize: '12px' }}>Click countries to add...</span>}
+                      {sideA.map(c => (
+                        <button key={c} onClick={() => removeCountry(c, 'A')} style={{ background: 'rgba(52, 152, 219, 0.2)', border: '1px solid #3498db', color: '#fff', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}>{c} ✕</button>
+                      ))}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '6px' }}>
+                      {COUNTRIES.filter(c => !sideA.includes(c) && !sideB.includes(c)).map(c => (
+                        <button key={c} onClick={() => addCountry(c, 'A')} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: '#b0c8d8', padding: '8px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', textAlign: 'left' }}>{c}</button>
+                      ))}
+                    </div>
                   </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '100px', gap: '20px' }}>
+                    <TrendingUp size={32} color="#5a7a9a" />
+                    <span style={{ fontSize: '12px', fontWeight: '900', color: '#e74c3c', letterSpacing: '2px' }}>VS</span>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#e67e22' }} />
+                      <span style={{ fontWeight: '800', letterSpacing: '2px', fontSize: '14px' }}>ALLIANCE OMEGA</span>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', minHeight: '120px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.1)', marginBottom: '20px' }}>
+                      {sideB.length === 0 && <span style={{ color: '#5a7a9a', fontSize: '12px' }}>Click countries to add...</span>}
+                      {sideB.map(c => (
+                        <button key={c} onClick={() => removeCountry(c, 'B')} style={{ background: 'rgba(230, 126, 34, 0.2)', border: '1px solid #e67e22', color: '#fff', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}>{c} ✕</button>
+                      ))}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '6px' }}>
+                      {COUNTRIES.filter(c => !sideA.includes(c) && !sideB.includes(c)).map(c => (
+                        <button key={c} onClick={() => addCountry(c, 'B')} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: '#b0c8d8', padding: '8px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', textAlign: 'left' }}>{c}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Wargame / Strike View */
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 1fr', gap: '2rem', width: '100%', minHeight: '600px' }}>
                   
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', minHeight: '120px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.1)', marginBottom: '20px' }}>
-                    {sideA.length === 0 && <span style={{ color: '#5a7a9a', fontSize: '12px' }}>Click countries to add to Alpha...</span>}
-                    {sideA.map(c => (
-                      <button key={c} onClick={() => removeCountry(c, 'A')} style={{ background: 'rgba(52, 152, 219, 0.2)', border: '1px solid #3498db', color: '#fff', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}>{c} ✕</button>
-                    ))}
+                  {/* Left Column: Tactical Control */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    
+                    {/* HUD: Solar Smash Stats */}
+                    <div style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', padding: '24px', borderRadius: '24px', borderLeft: '4px solid #f39c12' }}>
+                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                          <div style={{ color: '#5a7a9a', fontSize: '10px', fontWeight: '900', letterSpacing: '2px' }}>PLANETARY HUD</div>
+                          <div style={{ color: '#f39c12', fontSize: '10px', fontWeight: '900' }}>v1.0.0-WAR</div>
+                       </div>
+                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                          <div>
+                             <div style={{ fontSize: '11px', color: '#8aa', fontWeight: '800' }}>SURVIVAL</div>
+                             <div style={{ fontSize: '28px', fontWeight: '900', color: '#2ecc71' }}>{populationStats?.surviving.toFixed(2)}%</div>
+                          </div>
+                          <div>
+                             <div style={{ fontSize: '11px', color: '#8aa', fontWeight: '800' }}>CASUALTIES</div>
+                             <div style={{ fontSize: '28px', fontWeight: '900', color: '#e74c3c' }}>{populationStats?.casualties || '0 M'}</div>
+                          </div>
+                       </div>
+                    </div>
+
+                    {/* Targeting List */}
+                    <div style={{ flex: 1, background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '32px', border: '1px solid rgba(243, 156, 18, 0.2)', display: 'flex', flexDirection: 'column' }}>
+                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                         <GlobeIcon size={18} color="#f39c12" />
+                         <span style={{ fontWeight: '900', letterSpacing: '2px', fontSize: '12px', color: '#f39c12' }}>SEARCH TARGET</span>
+                       </div>
+                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', overflowY: 'auto', paddingRight: '8px' }}>
+                         {COUNTRIES.map(c => (
+                           <button 
+                             key={c} 
+                             onClick={() => {
+                               setTargetCountry(c);
+                               if (globeRef.current && TARGET_COORDS[c]) {
+                                 globeRef.current.pointOfView({ lat: TARGET_COORDS[c][0], lng: TARGET_COORDS[c][1], altitude: 2 }, 1000);
+                               }
+                             }}
+                             style={{ 
+                               background: targetCountry === c ? 'rgba(243, 156, 18, 0.2)' : 'rgba(255,255,255,0.03)', 
+                               border: `1px solid ${targetCountry === c ? '#f39c12' : 'rgba(255,255,255,0.05)'}`,
+                               color: targetCountry === c ? '#fff' : '#5a7a9a',
+                               padding: '10px 4px', borderRadius: '10px', fontSize: '9px', fontWeight: '800', cursor: 'pointer' 
+                             }}
+                           >
+                              {c}
+                           </button>
+                         ))}
+                       </div>
+                    </div>
+
+                    {/* Launch Section */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1rem' }}>
+                       <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {['Kinetic', 'Nuclear'].map(w => (
+                              <button 
+                                key={w}
+                                onClick={() => setWeapon(w)}
+                                style={{ 
+                                  flex: 1, background: weapon === w ? (w === 'Nuclear' ? 'rgba(231, 76, 60, 0.2)' : 'rgba(52, 152, 219, 0.2)') : 'rgba(255,255,255,0.03)', 
+                                  border: `1px solid ${weapon === w ? (w === 'Nuclear' ? '#e74c3c' : '#3498db') : 'rgba(255,255,255,0.05)'}`,
+                                  color: weapon === w ? '#fff' : '#5a7a9a',
+                                  padding: '12px', borderRadius: '12px', fontSize: '10px', fontWeight: '900', cursor: 'pointer'
+                                }}
+                              >
+                                {w === 'Nuclear' ? '☢' : '🚀'} {w.toUpperCase()}
+                              </button>
+                            ))}
+                          </div>
+                       </div>
+                       <button 
+                          onClick={handleStrike}
+                          disabled={!targetCountry || launching}
+                          style={{ 
+                            borderRadius: '24px', background: launching ? '#111' : 'linear-gradient(to right, #f39c12, #d35400)', 
+                            color: '#fff', fontWeight: '900', fontSize: '14px', cursor: 'pointer', border: 'none',
+                            boxShadow: targetCountry ? '0 0 30px rgba(243, 156, 18, 0.3)' : 'none',
+                            opacity: (!targetCountry || launching) ? 0.3 : 1
+                          }}
+                        >
+                          {launching ? 'LAUNCHING...' : 'FIRE'}
+                        </button>
+                    </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '6px' }}>
-                    {COUNTRIES.filter(c => !sideA.includes(c) && !sideB.includes(c)).map(c => (
-                      <button key={c} onClick={() => addCountry(c, 'A')} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: '#b0c8d8', padding: '8px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', textAlign: 'left' }}>{c}</button>
-                    ))}
+                  {/* Right Column: 3D Globe View */}
+                  <div style={{ position: 'relative', background: 'rgba(0,0,0,0.5)', borderRadius: '40px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                     <WorldGlobe
+                        ref={globeRef}
+                        width={600}
+                        height={600}
+                        backgroundColor="rgba(0,0,0,0)"
+                        globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
+                        bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+                        ringsData={impacts}
+                        ringColor={() => '#f39c12'}
+                        ringMaxRadius={d => d.size}
+                        ringPropagationSpeed={3}
+                        ringRepeatPeriod={100}
+                        animateIn={false}
+                     />
+                     
+                     {/* Overlay Crosshair */}
+                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none' }}>
+                        <div style={{ width: '40px', height: '40px', border: '1px solid rgba(243, 156, 18, 0.5)', borderRadius: '50%' }} />
+                        <div style={{ position: 'absolute', top: '50%', left: '50%', width: '100px', height: '1px', background: 'rgba(243, 156, 18, 0.3)', transform: 'translate(-50%, -50%)' }} />
+                        <div style={{ position: 'absolute', top: '50%', left: '50%', width: '1px', height: '100px', background: 'rgba(243, 156, 18, 0.3)', transform: 'translate(-50%, -50%)' }} />
+                     </div>
+
+                     {targetCountry && (
+                        <div style={{ position: 'absolute', bottom: '30px', left: '30px', background: 'rgba(0,0,0,0.8)', padding: '12px 20px', borderRadius: '16px', border: '1px solid #f39c12' }}>
+                           <div style={{ fontSize: '10px', color: '#f39c12', fontWeight: '900', letterSpacing: '2px' }}>TARGET LOCKED</div>
+                           <div style={{ fontSize: '20px', fontWeight: '900' }}>{targetCountry.toUpperCase()}</div>
+                        </div>
+                     )}
+
+                     {launching && (
+                       <motion.div 
+                        animate={{ opacity: [0, 1, 0] }}
+                        transition={{ repeat: Infinity, duration: 0.1 }}
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(255, 0, 0, 0.05)', pointerEvents: 'none', zIndex: 100 }}
+                       />
+                     )}
                   </div>
+
                 </div>
+              )}
 
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '100px', gap: '20px' }}>
-                  <TrendingUp size={32} color="#5a7a9a" />
-                  <div style={{ width: '1px', height: '100px', background: 'linear-gradient(to bottom, rgba(255,255,255,0.1), transparent)' }} />
-                  <span style={{ fontSize: '12px', fontWeight: '900', color: '#e74c3c', letterSpacing: '2px' }}>VS</span>
-                  <div style={{ width: '1px', height: '100px', background: 'linear-gradient(to top, rgba(255,255,255,0.1), transparent)' }} />
+              {!isStrikeMode && (
+                <div style={{ marginTop: '4rem', textAlign: 'center' }}>
+                  <button 
+                    onClick={runSimulation}
+                    disabled={sideA.length === 0 || sideB.length === 0}
+                    style={{ 
+                      padding: '1.2rem 4rem', borderRadius: '99px', background: 'linear-gradient(to right, #6366f1, #22d3ee)', 
+                      border: 'none', color: '#fff', fontWeight: '900', fontSize: '16px', cursor: 'pointer',
+                      opacity: (sideA.length === 0 || sideB.length === 0) ? 0.3 : 1,
+                      boxShadow: '0 0 40px rgba(99, 102, 241, 0.4)',
+                      letterSpacing: '2px'
+                    }}
+                  >
+                    INITIALIZE SIMULATION ENGINE
+                  </button>
                 </div>
-
-                {/* Alliance B Selection */}
-                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#e67e22' }} />
-                    <span style={{ fontWeight: '800', letterSpacing: '2px', fontSize: '14px' }}>ALLIANCE OMEGA</span>
-                  </div>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', minHeight: '120px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.1)', marginBottom: '20px' }}>
-                    {sideB.length === 0 && <span style={{ color: '#5a7a9a', fontSize: '12px' }}>Click countries to add to Omega...</span>}
-                    {sideB.map(c => (
-                      <button key={c} onClick={() => removeCountry(c, 'B')} style={{ background: 'rgba(230, 126, 34, 0.2)', border: '1px solid #e67e22', color: '#fff', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}>{c} ✕</button>
-                    ))}
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '6px' }}>
-                    {COUNTRIES.filter(c => !sideA.includes(c) && !sideB.includes(c)).map(c => (
-                      <button key={c} onClick={() => addCountry(c, 'B')} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: '#b0c8d8', padding: '8px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', textAlign: 'left' }}>{c}</button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ marginTop: '4rem', textAlign: 'center' }}>
-                <button 
-                  onClick={runSimulation}
-                  disabled={sideA.length === 0 || sideB.length === 0}
-                  style={{ 
-                    padding: '1.2rem 4rem', borderRadius: '99px', background: 'linear-gradient(to right, #6366f1, #22d3ee)', 
-                    border: 'none', color: '#fff', fontWeight: '900', fontSize: '16px', cursor: 'pointer',
-                    opacity: (sideA.length === 0 || sideB.length === 0) ? 0.3 : 1,
-                    boxShadow: '0 0 40px rgba(99, 102, 241, 0.4)',
-                    letterSpacing: '2px'
-                  }}
-                >
-                  INITIALIZE SIMULATION ENGINE
-                </button>
-              </div>
+              )}
             </motion.div>
           )}
 
@@ -208,6 +417,15 @@ const Simulator = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6 }}
             >
+              {isStrikeMode && (
+                <div style={{ marginBottom: '2rem', padding: '1.5rem 2rem', background: 'rgba(231, 76, 60, 0.1)', border: '1px solid rgba(231, 76, 60, 0.3)', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ff4757', animation: 'livePulse 1s infinite' }} />
+                  <div>
+                    <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '900', color: '#ff4757', letterSpacing: '2px' }}>KINETIC IMPACT REPORT: {targetCountry.toUpperCase()}</h2>
+                    <div style={{ fontSize: '11px', color: '#8aa', marginTop: '4px' }}>POST-STRIKE DATA SYNTHESIS | WEAPON: {weapon.toUpperCase()} | STATUS: CRITICAL</div>
+                  </div>
+                </div>
+              )}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
                 
                 {/* Main Results Column */}
@@ -280,11 +498,16 @@ const Simulator = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                   
                   {/* Conflict Correlation Analysis */}
-                  <div style={{ background: 'rgba(231,76,60,0.06)', border: '1px solid rgba(231,76,60,0.2)', padding: '24px', borderRadius: '24px' }}>
+                  <div style={{ background: isStrikeMode ? 'rgba(231,76,60,0.12)' : 'rgba(231,76,60,0.06)', border: `1px solid ${isStrikeMode ? '#e74c3c' : 'rgba(231,76,60,0.2)'}`, padding: '24px', borderRadius: '24px' }}>
                     <div style={{ color: '#e74c3c', marginBottom: '1rem' }}><AlertTriangle size={24} /></div>
-                    <h4 style={{ fontSize: '14px', fontWeight: '900', marginBottom: '12px', color: '#fff' }}>STRATEGIC RISK BLOCKADE</h4>
+                    <h4 style={{ fontSize: '14px', fontWeight: '900', marginBottom: '12px', color: '#fff' }}>
+                      {isStrikeMode ? 'POST-KINETIC COLLAPSE' : 'STRATEGIC RISK BLOCKADE'}
+                    </h4>
                     <p style={{ fontSize: '13px', color: '#cc9999', lineHeight: '1.6', marginBottom: '20px' }}>
-                      The simulation identifies a critical failure point in high-frequency <b>Semiconductor</b> supply lanes and <b>Artic-Indian</b> energy routes. Global production efficiency would drop by ~14% in the first quarter of friction.
+                      {isStrikeMode 
+                        ? `The strike on ${targetCountry} has triggered an immediate localized infrastructure blackout. Secondary effects include a total halt of regional exports, specifically impacting global ${Object.keys(simResult.results.disruptedGoods)[0] || 'Resource'} stockpiles.`
+                        : `The simulation identifies a critical failure point in high-frequency Semiconductor supply lanes and Artic-Indian energy routes. Global production efficiency would drop by ~14% in the first quarter of friction.`
+                      }
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#886666' }}>

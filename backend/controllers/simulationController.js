@@ -97,4 +97,63 @@ const simulateCrisis = async (req, res) => {
     });
 };
 
-module.exports = { simulateCrisis };
+const simulateStrike = async (req, res) => {
+    const { targetCountry, weaponType } = req.body;
+    
+    if (!targetCountry) {
+        return res.status(400).json({ error: 'Target country required' });
+    }
+
+    const tradeData = getTradeData();
+    const consequences = {
+        totalEconomicDamage: 0,
+        disruptedGoods: {},
+        volatilityScore: 0,
+        globalInflationImpact: 0,
+        timeline: []
+    };
+
+    const target = targetCountry.toLowerCase();
+    const brokenLinks = [];
+
+    // All trade links involving the target are severed
+    tradeData.forEach(link => {
+        const src = link.source.toLowerCase();
+        const dest = link.target.toLowerCase();
+
+        if (src === target || dest === target) {
+            const valueMatch = link.value.match(/\$?([\d\.]+)/);
+            const value = valueMatch ? parseFloat(valueMatch[1]) : 0;
+            
+            consequences.totalEconomicDamage += value;
+            brokenLinks.push(link);
+
+            link.goods.forEach(good => {
+                consequences.disruptedGoods[good] = (consequences.disruptedGoods[good] || 0) + value;
+            });
+        }
+    });
+
+    // Weapon Impact Multiplier
+    const multi = weaponType === 'Nuclear' ? 4.5 : 1.2;
+    consequences.volatilityScore = Math.min(100, 70 + (consequences.totalEconomicDamage / 5));
+    consequences.globalInflationImpact = (consequences.totalEconomicDamage / 100) * multi;
+
+    consequences.timeline = [
+        { day: 1, event: 'Strike Impact: Critical infrastructure paralyzed.', impact: 'Local GDP -18% instantly; global panic.' },
+        { day: 3, event: 'Humanitarian crisis; energy hubs offline.', impact: 'Oil prices surge $40/barrel.' },
+        { day: 14, event: 'Global manufacturing collapse.', impact: 'Semiconductor shortage reaches critical levels.' },
+        { day: 45, event: 'Hyperinflation in regional neighbors.', impact: 'Total collapse of supply routes.' }
+    ];
+
+    res.json({
+        parameters: { targetCountry, weaponType },
+        results: {
+            ...consequences,
+            totalTradeCut: consequences.totalEconomicDamage // mapping for UI consistency
+        },
+        brokenLinks
+    });
+};
+
+module.exports = { simulateCrisis, simulateStrike };
