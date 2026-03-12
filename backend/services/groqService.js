@@ -137,4 +137,45 @@ const verifyClaim = async (claim, newsSignals = []) => {
   }
 };
 
-module.exports = { generateIntelReport, moderateContent, verifyClaim };
+const generateLiveInsights = async (newsItems) => {
+  // User-provided direct API key for insights
+  const insightsApiKey = "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";
+  const insightsGroq = new Groq({ apiKey: insightsApiKey });
+
+  try {
+    const headlines = newsItems.slice(0, 20).map(n => `- ${n.text} (${n.country})`).join('\n');
+
+    const prompt = `
+      You are Reality AI, a senior geopolitical intelligence analyst.
+      Analyze the following live news headlines to produce a comprehensive "Daily Geopolitical Briefing".
+      
+      Headlines:
+      ${headlines}
+
+      Your task is to synthesize these signals into a high-level strategic overview.
+      Return a JSON object with exactly these fields:
+      1. "briefingTitle": A sharp, professional title for today's briefing.
+      2. "summary": A 2-3 sentence strategic executive summary of the global landscape.
+      3. "majorEvents": An array of 3-4 objects, each with:
+         - "event": A short description of a major event.
+         - "impact": The systemic or market impact of this event.
+
+      Tone: Intelligence-grade, objective, concise.
+      Format: Raw JSON only.
+    `;
+
+    const chatCompletion = await insightsGroq.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.3,
+      response_format: { type: "json_object" },
+    });
+
+    return JSON.parse(chatCompletion.choices[0]?.message?.content);
+  } catch (error) {
+    console.error("Live Insights Error:", error);
+    return null;
+  }
+};
+
+module.exports = { generateIntelReport, moderateContent, verifyClaim, generateLiveInsights };

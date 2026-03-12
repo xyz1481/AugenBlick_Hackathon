@@ -14,6 +14,7 @@ import React, {
 import { Globe as GlobeIcon, AlertTriangle } from "lucide-react";
 import GLOBAL_INTEL from "../data/globalIntel.json";
 import API_BASE_URL from "../api/config";
+import { CurrencyCard } from "./CurrencyCard";
 
 // ─── STATIC FALLBACKS (shown while real data loads) ───────────────────────────
 
@@ -328,8 +329,8 @@ const TRADE_POLICY_ITEMS = [
 const WIDGETS_BY_MODE = {
   CONFLICT: [
     "liveNews",
+    "currency",
     "webcams",
-    "aiInsights",
     "instability",
     "strategicRisk",
     "intel",
@@ -346,7 +347,7 @@ const WIDGETS_BY_MODE = {
     "tradePolicy",
     "btcEtf",
     "stablecoins",
-    "aiInsights",
+    "currency",
   ],
   COMMODITIES: [
     "tradeRoutes",
@@ -456,13 +457,6 @@ function PanelCard({
 // ─── LIVE NEWS ────────────────────────────────────────────────────────────────
 
 function LiveNewsCard({ newsFeed }) {
-  const [src, setSrc] = useState("ALL");
-
-  const filtered =
-    src === "ALL"
-      ? newsFeed
-      : newsFeed.filter((n) => n.source?.toUpperCase().includes(src));
-
   return (
     <PanelCard
       title="LIVE NEWS"
@@ -471,37 +465,8 @@ function LiveNewsCard({ newsFeed }) {
       width={400}
       live
     >
-      {/* Source filter pills */}
-      <div
-        style={{
-          display: "flex",
-          gap: "5px",
-          marginBottom: "10px",
-          flexWrap: "wrap",
-        }}
-      >
-        {NEWS_SOURCES.map((s) => (
-          <button
-            key={s}
-            onClick={() => setSrc(s)}
-            style={{
-              background: s === src ? "#e74c3c" : "#1e2d4a",
-              color: "#fff",
-              border: "none",
-              borderRadius: "4px",
-              padding: "2px 8px",
-              fontSize: "8px",
-              fontWeight: 900,
-              cursor: "pointer",
-            }}
-          >
-            {s}
-          </button>
-        ))}
-      </div>
-
       {/* Articles */}
-      {filtered.slice(0, 6).map((n, i) => (
+      {newsFeed.slice(0, 8).map((n, i, arr) => (
         <a
           key={i}
           href={n.link && n.link !== "#" ? n.link : undefined}
@@ -515,7 +480,7 @@ function LiveNewsCard({ newsFeed }) {
             marginBottom: "10px",
             paddingBottom: "10px",
             borderBottom:
-              i < filtered.slice(0, 6).length - 1
+              i < arr.length - 1
                 ? "1px solid #1e2d4a"
                 : "none",
             textDecoration: "none",
@@ -529,22 +494,22 @@ function LiveNewsCard({ newsFeed }) {
               marginBottom: "3px",
             }}
           >
-            <span style={{ fontSize: "9px", color: "#5a7a9a" }}>{n.ago}</span>
+            <span style={{ fontSize: "10px", color: "#5a7a9a" }}>{n.ago}</span>
             <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
               {n.link && n.link !== "#" && (
-                <span style={{ fontSize: "8px", color: "#3498db" }}>↗</span>
+                <span style={{ fontSize: "10px", color: "#3498db" }}>↗</span>
               )}
-              <span style={{ fontSize: "9px", color: "#3498db" }}>
+              <span style={{ fontSize: "11px", color: "#3498db" }}>
                 {n.source}
               </span>
             </div>
           </div>
           <div
             style={{
-              fontSize: "11px",
+              fontSize: "13px",
               color: n.link && n.link !== "#" ? "#d0e4ff" : "#fff",
               fontWeight: 700,
-              lineHeight: "1.4",
+              lineHeight: "1.5",
               transition: "color 0.15s",
             }}
             onMouseEnter={(e) => {
@@ -560,7 +525,7 @@ function LiveNewsCard({ newsFeed }) {
           </div>
           {n.country && (
             <div
-              style={{ fontSize: "9px", color: "#5a7a9a", marginTop: "3px" }}
+              style={{ fontSize: "10px", color: "#5a7a9a", marginTop: "4px" }}
             >
               {n.country}
             </div>
@@ -568,7 +533,7 @@ function LiveNewsCard({ newsFeed }) {
         </a>
       ))}
 
-      {filtered.length === 0 && (
+      {newsFeed.length === 0 && (
         <div
           style={{
             fontSize: "11px",
@@ -726,78 +691,12 @@ function WebcamsCard() {
   );
 }
 
-// ─── AI INSIGHTS ─────────────────────────────────────────────────────────────
+// ─── CURRENCY RATES ─────────────────────────────────────────────────────────
 
-function AiInsightsCard() {
+function CurrencyWidget() {
   return (
-    <PanelCard title="AI INSIGHTS" width={340} live>
-      <div
-        style={{
-          background: "rgba(52,152,219,0.07)",
-          borderRadius: "8px",
-          border: "1px solid rgba(52,152,219,0.2)",
-          padding: "12px",
-          marginBottom: "10px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            marginBottom: "8px",
-          }}
-        >
-          <GlobeIcon size={12} color="#3498db" />
-          <span style={{ fontSize: "10px", fontWeight: 900, color: "#fff" }}>
-            WORLD BRIEF
-          </span>
-        </div>
-        <p
-          style={{
-            fontSize: "11px",
-            color: "#8aa",
-            lineHeight: "1.6",
-            margin: 0,
-          }}
-        >
-          Iranian drone strike near Dubai Airport escalated regional tensions.
-          Brent crude surged to $100/bbl amid supply disruption fears.
-        </p>
-      </div>
-      <div
-        style={{
-          background: "rgba(231,76,60,0.07)",
-          borderRadius: "8px",
-          border: "1px solid rgba(231,76,60,0.2)",
-          padding: "12px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            marginBottom: "8px",
-          }}
-        >
-          <AlertTriangle size={12} color="#e74c3c" />
-          <span style={{ fontSize: "10px", fontWeight: 900, color: "#fff" }}>
-            THREAT FORECAST
-          </span>
-        </div>
-        <p
-          style={{
-            fontSize: "11px",
-            color: "#8aa",
-            lineHeight: "1.6",
-            margin: 0,
-          }}
-        >
-          72h escalation probability: MIDEAST 68% · KOREA 31% · SAHEL 44%.
-          Wagner movements suggest imminent push in central Sudan.
-        </p>
-      </div>
+    <PanelCard title="LIVE CURRENCY RATES" width={380} live>
+      <CurrencyCard />
     </PanelCard>
   );
 }
@@ -1576,10 +1475,10 @@ function renderWidget(
   switch (key) {
     case "liveNews":
       return <LiveNewsCard key={key} newsFeed={newsFeed} />;
+    case "currency":
+      return <CurrencyWidget />;
     case "webcams":
       return <WebcamsCard key={key} />;
-    case "aiInsights":
-      return <AiInsightsCard key={key} />;
     case "instability":
       return <InstabilityCard key={key} instabilityData={instabilityData} />;
     case "strategicRisk":
