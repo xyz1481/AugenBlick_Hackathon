@@ -1,7 +1,4 @@
-/**
- * Tracking Service - Live Geopolitical Intelligence
- * Generates and manages live flight and shipping data across global corridors.
- */
+const axios = require('axios');
 
 const MAJOR_AIR_CORRIDORS = [
     { name: 'Transatlantic North', start: [40.7, -74.0], end: [51.5, -0.1] },
@@ -23,18 +20,20 @@ const SHIPPING_CHOKEPOINTS = [
 
 let activeFlights = [];
 let activeShips = [];
+let cachedLiveFlights = [];
+let lastFlightFetch = 0;
 
 const initializeTracks = () => {
-    // Aircraft
-    for (let i = 0; i < 60; i++) {
+    // Simulated Aircraft (Fallback/Military)
+    for (let i = 0; i < 40; i++) {
         const corridor = MAJOR_AIR_CORRIDORS[Math.floor(Math.random() * MAJOR_AIR_CORRIDORS.length)];
         const progress = Math.random();
-        const isMilitary = i % 10 === 0 || corridor.name.includes('Border') || corridor.name.includes('Recon');
+        const isMilitary = i % 8 === 0 || corridor.name.includes('Border') || corridor.name.includes('Recon');
         
         activeFlights.push({
-            id: `FL-${1000 + i}`,
+            id: `SIM-FL-${1000 + i}`,
             type: 'aircraft',
-            callsign: isMilitary ? `FORTE${i % 10}` : `UA${100 + i}`,
+            callsign: isMilitary ? `FORTE${i % 10}` : `GTI${100 + i}`,
             lat: corridor.start[0] + (corridor.end[0] - corridor.start[0]) * progress,
             lng: corridor.start[1] + (corridor.end[1] - corridor.start[1]) * progress,
             alt: isMilitary ? 60000 : 32000 + Math.random() * 4000,
@@ -47,7 +46,7 @@ const initializeTracks = () => {
     }
 
     // Ships
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 60; i++) {
         const chokepoint = SHIPPING_CHOKEPOINTS[Math.floor(Math.random() * SHIPPING_CHOKEPOINTS.length)];
         const latOffset = (Math.random() - 0.5) * 8;
         const lngOffset = (Math.random() - 0.5) * 8;
@@ -65,6 +64,70 @@ const initializeTracks = () => {
             chokepoint: chokepoint.name
         });
     }
+};
+
+const fetchAviationStackData = async () => {
+    const API_KEY = process.env.AVIATIONSTACK_API_KEY;
+    
+    if (!API_KEY) {
+        console.warn('[TrackingService] ⚠️  AVIATIONSTACK_API_KEY is missing in .env. Falling back to simulation only.');
+        return null;
+    }
+
+    // Cache for 30 minutes (1,800,000 ms) to stay within free tier limits (100 requests)
+    if (Date.now() - lastFlightFetch < 1800000 && cachedLiveFlights.length > 0) {
+        const remainingMinutes = Math.ceil((1800000 - (Date.now() - lastFlightFetch)) / 60000);
+        console.log(`[TrackingService] 🛡️ Serving cached flight data. Next refresh in ${remainingMinutes} minutes.`);
+        return cachedLiveFlights;
+    }
+
+    try {
+        console.log('[TrackingService] 📡 Initializing atmospheric data fetch from Aviationstack...');
+        const response = await axios.get(`http://api.aviationstack.com/v1/flights`, {
+            params: {
+                access_key: API_KEY,
+                flight_status: 'active',
+                limit: 100
+            }
+        });
+
+        if (response.data && response.data.data) {
+            const flightCount = response.data.data.length;
+            console.log(`[TrackingService] ✅ Successfully ingested ${flightCount} raw flight records.`);
+            
+            const liveData = response.data.data
+                .filter(f => f.live && f.live.latitude && f.live.longitude)
+                .map(f => ({
+                    id: f.flight.iata || f.flight.icao || `AV-${Math.random()}`,
+                    type: 'aircraft',
+                    callsign: f.flight.iata || f.flight.icao || 'TRACKER',
+                    lat: f.live.latitude,
+                    lng: f.live.longitude,
+                    alt: f.live.altitude || 35000,
+                    speed: f.live.speed_horizontal || 480,
+                    direction: f.live.direction || 0,
+                    status: f.flight_status,
+                    airline: f.airline ? f.airline.name : 'Commercial',
+                    isAPI: true
+                }));
+            
+            console.log(`[TrackingService] 🛰️  Fuzed ${liveData.length} active global vectors for tactile monitor.`);
+            cachedLiveFlights = liveData;
+            lastFlightFetch = Date.now();
+            return liveData;
+        } else if (response.data && response.data.error) {
+            console.error('[TrackingService] ❌ Aviationstack API Error:', response.data.error.info || response.data.error.code);
+            return null;
+        }
+    } catch (err) {
+        console.error('[TrackingService] ❌ Critical Transport Error:', err.message);
+        if (err.response) {
+            console.error('[TrackingService] Response Status:', err.response.status);
+            console.error('[TrackingService] Response Data:', err.response.data);
+        }
+        return null;
+    }
+    return null;
 };
 
 const updatePositions = () => {
@@ -97,12 +160,14 @@ const updatePositions = () => {
 };
 
 initializeTracks();
-setInterval(updatePositions, 3000); // Faster updates for smoother feel
+setInterval(updatePositions, 3000);
 
 const getLiveTrackingData = async () => {
+    const liveFlights = await fetchAviationStackData();
+    
     return {
         timestamp: new Date().toISOString(),
-        flights: activeFlights,
+        flights: liveFlights ? [...liveFlights, ...activeFlights] : activeFlights.slice(0, 80),
         vessels: activeShips
     };
 };

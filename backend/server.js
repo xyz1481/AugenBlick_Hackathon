@@ -23,7 +23,6 @@ app.use('/api/market', require('./routes/marketRoutes'));
 app.use('/api/simulator', require('./routes/simulationRoutes'));
 app.use('/api/tracking', require('./routes/trackingRoutes'));
 
-
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the AugenBlick API' });
 });

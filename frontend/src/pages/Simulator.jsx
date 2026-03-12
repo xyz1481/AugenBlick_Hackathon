@@ -36,8 +36,11 @@ const Simulator = () => {
   const [targetCountry, setTargetCountry] = useState(null);
   const [weapon, setWeapon] = useState('Kinetic');
   const [launching, setLaunching] = useState(false);
-  const [impacts, setImpacts] = useState([]); // [{lat, lng, size, color}]
+  const [impacts, setImpacts] = useState([]);
+  const [strikePhase, setStrikePhase] = useState(null); // null | 'countdown' | 'missile' | 'flash' | 'detonation' | 'afterburn'
+  const [countdown, setCountdown] = useState(3);
   const globeRef = useRef();
+  const countdownRef = useRef();
 
   const populationStats = useMemo(() => {
     if (!isStrikeMode || !targetCountry) return null;
@@ -107,23 +110,56 @@ const Simulator = () => {
     const coords = TARGET_COORDS[targetCountry];
     if (!coords) return;
 
+    // Phase 1: Countdown
+    setStrikePhase('countdown');
     setLaunching(true);
-    
-    // Animate Globe to target
-    if (globeRef.current) {
-      globeRef.current.pointOfView({ lat: coords[0], lng: coords[1], altitude: 1.5 }, 1000);
-    }
+    setCountdown(3);
+    let c = 3;
+    countdownRef.current = setInterval(() => {
+      c -= 1;
+      setCountdown(c);
+      if (c <= 0) {
+        clearInterval(countdownRef.current);
+        startLaunch(coords);
+      }
+    }, 700);
+  };
 
+  const startLaunch = (coords) => {
+    // Phase 2: Missile in flight — zoom globe to approach altitude
+    setStrikePhase('missile');
+    if (globeRef.current) {
+      globeRef.current.pointOfView({ lat: coords[0], lng: coords[1], altitude: 2.5 }, 800);
+    }
+    
     setTimeout(() => {
-      setImpacts([...impacts, { 
-        lat: coords[0], 
-        lng: coords[1], 
-        size: weapon === 'Nuclear' ? 30 : 10,
-        color: weapon === 'Nuclear' ? '#f1c40f' : '#e74c3c'
-      }]);
-      // Small delay for the "impact" feel before API call
-      setTimeout(runSimulation, 1200);
-    }, 1500);
+      // Phase 3: Impact flash — close in zoom
+      setStrikePhase('flash');
+      if (globeRef.current) {
+        globeRef.current.pointOfView({ lat: coords[0], lng: coords[1], altitude: 0.8 }, 400);
+      }
+
+      setTimeout(() => {
+        // Phase 4: Shockwave detonation
+        setStrikePhase('detonation');
+        const isNuke = weapon === 'Nuclear';
+        setImpacts(prev => [
+          ...prev,
+          { lat: coords[0], lng: coords[1], size: isNuke ? 30 : 14, color: isNuke ? '#f1c40f' : '#e74c3c' },
+          { lat: coords[0], lng: coords[1], size: isNuke ? 20 : 9, color: isNuke ? '#ff6b35' : '#ff4757' },
+          { lat: coords[0], lng: coords[1], size: isNuke ? 12 : 6, color: '#ffffff' },
+        ]);
+
+        setTimeout(() => {
+          // Phase 5: Afterburn zoom out
+          setStrikePhase('afterburn');
+          if (globeRef.current) {
+            globeRef.current.pointOfView({ lat: coords[0], lng: coords[1], altitude: 1.5 }, 1200);
+          }
+          setTimeout(runSimulation, 1000);
+        }, 1500);
+      }, 400);
+    }, 1800);
   };
 
   const reset = () => {
@@ -131,6 +167,11 @@ const Simulator = () => {
     setSideB([]);
     setSimResult(null);
     setStep(1);
+    setImpacts([]);
+    setStrikePhase(null);
+    setLaunching(false);
+    setCountdown(3);
+    if (countdownRef.current) clearInterval(countdownRef.current);
   };
 
   return (
@@ -325,8 +366,8 @@ const Simulator = () => {
                     </div>
                   </div>
 
-                  {/* Right Column: 3D Globe View */}
-                  <div style={{ position: 'relative', background: 'rgba(0,0,0,0.5)', borderRadius: '40px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                   {/* Right Column: 3D Globe View - PREMIUM STRIKE THEATER */}
+                   <div style={{ position: 'relative', background: 'rgba(0,0,0,0.5)', borderRadius: '40px', overflow: 'hidden', border: `1px solid ${strikePhase === 'detonation' || strikePhase === 'afterburn' ? (weapon === 'Nuclear' ? '#f1c40f' : '#e74c3c') : 'rgba(255,255,255,0.1)'}`, transition: 'border-color 0.3s', boxShadow: strikePhase === 'detonation' ? `0 0 80px ${weapon === 'Nuclear' ? 'rgba(241,196,15,0.5)' : 'rgba(231,76,60,0.5)'}` : 'none' }}>
                      <WorldGlobe
                         ref={globeRef}
                         width={600}
@@ -335,35 +376,150 @@ const Simulator = () => {
                         globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
                         bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
                         ringsData={impacts}
-                        ringColor={() => '#f39c12'}
+                        ringColor={d => d.color}
                         ringMaxRadius={d => d.size}
-                        ringPropagationSpeed={3}
-                        ringRepeatPeriod={100}
+                        ringPropagationSpeed={4}
+                        ringRepeatPeriod={weapon === 'Nuclear' ? 600 : 900}
                         animateIn={false}
                      />
-                     
-                     {/* Overlay Crosshair */}
-                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none' }}>
-                        <div style={{ width: '40px', height: '40px', border: '1px solid rgba(243, 156, 18, 0.5)', borderRadius: '50%' }} />
-                        <div style={{ position: 'absolute', top: '50%', left: '50%', width: '100px', height: '1px', background: 'rgba(243, 156, 18, 0.3)', transform: 'translate(-50%, -50%)' }} />
-                        <div style={{ position: 'absolute', top: '50%', left: '50%', width: '1px', height: '100px', background: 'rgba(243, 156, 18, 0.3)', transform: 'translate(-50%, -50%)' }} />
-                     </div>
 
-                     {targetCountry && (
-                        <div style={{ position: 'absolute', bottom: '30px', left: '30px', background: 'rgba(0,0,0,0.8)', padding: '12px 20px', borderRadius: '16px', border: '1px solid #f39c12' }}>
-                           <div style={{ fontSize: '10px', color: '#f39c12', fontWeight: '900', letterSpacing: '2px' }}>TARGET LOCKED</div>
-                           <div style={{ fontSize: '20px', fontWeight: '900' }}>{targetCountry.toUpperCase()}</div>
-                        </div>
+                     {/* Tactical Crosshair */}
+                     <motion.div
+                       animate={targetCountry && !launching ? { opacity: [0.4, 1, 0.4], scale: [1, 1.05, 1] } : { opacity: 0.3, scale: 1 }}
+                       transition={{ repeat: Infinity, duration: 2 }}
+                       style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none' }}
+                     >
+                       <div style={{ width: '48px', height: '48px', border: `2px solid ${targetCountry ? '#f39c12' : 'rgba(255,255,255,0.2)'}`, borderRadius: '50%' }} />
+                       <div style={{ position: 'absolute', top: '50%', left: '50%', width: '120px', height: '1px', background: 'rgba(243,156,18,0.4)', transform: 'translate(-50%, -50%)' }} />
+                       <div style={{ position: 'absolute', top: '50%', left: '50%', width: '1px', height: '120px', background: 'rgba(243,156,18,0.4)', transform: 'translate(-50%, -50%)' }} />
+                       <div style={{ position: 'absolute', top: '-4px', left: '50%', width: '8px', height: '8px', border: '2px solid #f39c12', transform: 'translateX(-50%) rotate(45deg)' }} />
+                     </motion.div>
+
+                     {/* Phase: COUNTDOWN */}
+                     <AnimatePresence>
+                     {strikePhase === 'countdown' && (
+                       <motion.div
+                         key={`cd-${countdown}`}
+                         initial={{ scale: 2.5, opacity: 0 }}
+                         animate={{ scale: 1, opacity: 1 }}
+                         exit={{ scale: 0.5, opacity: 0 }}
+                         transition={{ duration: 0.5, ease: 'easeOut' }}
+                         style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 50 }}
+                       >
+                         <div style={{ fontSize: '140px', fontWeight: '900', color: '#e74c3c', textShadow: '0 0 80px rgba(231,76,60,0.8)', fontFamily: 'monospace', lineHeight: 1 }}>
+                           {countdown > 0 ? countdown : 'FIRE'}
+                         </div>
+                       </motion.div>
                      )}
 
-                     {launching && (
-                       <motion.div 
-                        animate={{ opacity: [0, 1, 0] }}
-                        transition={{ repeat: Infinity, duration: 0.1 }}
-                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(255, 0, 0, 0.05)', pointerEvents: 'none', zIndex: 100 }}
+                     {/* Phase: MISSILE IN FLIGHT */}
+                     {strikePhase === 'missile' && (
+                       <motion.div
+                         initial={{ x: 0, y: '100%', opacity: 1 }}
+                         animate={{ x: 0, y: '-30%', opacity: [1, 1, 0] }}
+                         transition={{ duration: 1.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+                         style={{ position: 'absolute', left: '48%', bottom: '10%', zIndex: 60, pointerEvents: 'none' }}
+                       >
+                         {/* Missile body */}
+                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+                           <div style={{ width: '8px', height: '30px', background: 'linear-gradient(to bottom, #c0392b, #e74c3c)', clipPath: 'polygon(50% 0%, 100% 100%, 0% 100%)', boxShadow: '0 0 20px rgba(231,76,60,0.9)' }} />
+                           <div style={{ width: '6px', height: '24px', background: 'linear-gradient(to bottom, #bdc3c7, #7f8c8d)' }} />
+                           {/* Exhaust trail */}
+                           <motion.div
+                             animate={{ scaleY: [1, 1.3, 0.8, 1.2, 1], opacity: [0.8, 1, 0.6, 1, 0.8] }}
+                             transition={{ repeat: Infinity, duration: 0.12 }}
+                             style={{ width: '16px', height: '50px', background: 'linear-gradient(to bottom, rgba(255,165,0,0.9), transparent)', filter: 'blur(4px)', marginTop: '-4px' }}
+                           />
+                         </div>
+                       </motion.div>
+                     )}
+
+                     {/* Phase: IMPACT FLASH */}
+                     {(strikePhase === 'flash' || strikePhase === 'detonation') && (
+                       <motion.div
+                         initial={{ opacity: 0 }}
+                         animate={strikePhase === 'flash' ? { opacity: [0, 1, 0.4] } : { opacity: [0.4, 0.1, 0] }}
+                         transition={{ duration: strikePhase === 'flash' ? 0.3 : 1.5 }}
+                         style={{ position: 'absolute', inset: 0, background: weapon === 'Nuclear' ? 'radial-gradient(circle, rgba(255,255,200,0.95) 0%, rgba(241,196,15,0.6) 40%, transparent 70%)' : 'radial-gradient(circle, rgba(255,200,150,0.95) 0%, rgba(231,76,60,0.5) 40%, transparent 70%)', pointerEvents: 'none', zIndex: 70 }}
                        />
                      )}
-                  </div>
+
+                     {/* Phase: DETONATION shockwave rings */}
+                     {strikePhase === 'detonation' && (
+                       <motion.div
+                         initial={{ scale: 0, opacity: 1 }}
+                         animate={{ scale: 4, opacity: 0 }}
+                         transition={{ duration: 1.2, ease: 'easeOut' }}
+                         style={{ position: 'absolute', top: '50%', left: '50%', translateX: '-50%', translateY: '-50%', width: '80px', height: '80px', borderRadius: '50%', border: `4px solid ${weapon === 'Nuclear' ? '#f1c40f' : '#e74c3c'}`, boxShadow: `0 0 40px ${weapon === 'Nuclear' ? '#f1c40f' : '#e74c3c'}`, pointerEvents: 'none', zIndex: 65 }}
+                       />
+                     )}
+                     {strikePhase === 'detonation' && (
+                       <motion.div
+                         initial={{ scale: 0, opacity: 0.8 }}
+                         animate={{ scale: 3, opacity: 0 }}
+                         transition={{ duration: 1.8, ease: 'easeOut', delay: 0.3 }}
+                         style={{ position: 'absolute', top: '50%', left: '50%', translateX: '-50%', translateY: '-50%', width: '80px', height: '80px', borderRadius: '50%', border: `2px solid ${weapon === 'Nuclear' ? '#ff6b35' : '#ff4757'}`, pointerEvents: 'none', zIndex: 65 }}
+                       />
+                     )}
+
+                     {/* Smoke particles after detonation */}
+                     {(strikePhase === 'detonation' || strikePhase === 'afterburn') && (
+                       [0,1,2,3,4,5,6,7].map(i => (
+                         <motion.div
+                           key={i}
+                           initial={{ x: 0, y: 0, opacity: 0.8, scale: 0 }}
+                           animate={{ 
+                             x: Math.cos(i * 45 * Math.PI/180) * (40 + i * 8),
+                             y: Math.sin(i * 45 * Math.PI/180) * (40 + i * 8) - 20,
+                             opacity: 0,
+                             scale: [0, 1.5, 0.8]
+                           }}
+                           transition={{ duration: 1.5 + i * 0.2, delay: i * 0.05, ease: 'easeOut' }}
+                           style={{ 
+                             position: 'absolute', top: '50%', left: '50%', 
+                             width: `${8 + i * 3}px`, height: `${8 + i * 3}px`, 
+                             borderRadius: '50%', 
+                             background: weapon === 'Nuclear' ? 'radial-gradient(circle, rgba(241,196,15,0.7), rgba(255,100,0,0.3))' : 'radial-gradient(circle, rgba(231,76,60,0.7), rgba(100,0,0,0.3))',
+                             filter: 'blur(3px)',
+                             pointerEvents: 'none', zIndex: 64 
+                           }}
+                         />
+                       ))
+                     )}
+
+                     {/* Screen shake overlay on impact */}
+                     {strikePhase === 'flash' && (
+                       <motion.div
+                         animate={{ x: [-4, 6, -3, 5, -2, 4, 0], y: [3, -5, 4, -3, 2, -2, 0] }}
+                         transition={{ duration: 0.5 }}
+                         style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 200 }}
+                       />
+                     )}
+                     </AnimatePresence>
+
+                     {/* Target Readout */}
+                     {targetCountry && (
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          style={{ position: 'absolute', bottom: '30px', left: '30px', background: 'rgba(0,0,0,0.85)', padding: '12px 20px', borderRadius: '16px', border: `1px solid ${strikePhase === 'detonation' ? '#e74c3c' : '#f39c12'}`, backdropFilter: 'blur(10px)' }}
+                        >
+                           <div style={{ fontSize: '9px', color: '#f39c12', fontWeight: '900', letterSpacing: '2px', marginBottom: '4px' }}>TARGET LOCKED</div>
+                           <div style={{ fontSize: '18px', fontWeight: '900' }}>{targetCountry.toUpperCase()}</div>
+                           {strikePhase && <div style={{ fontSize: '9px', color: '#e74c3c', fontWeight: '900', marginTop: '4px', letterSpacing: '3px' }}>{strikePhase.toUpperCase()}</div>}
+                        </motion.div>
+                     )}
+
+                     {/* FULL PAGE nuclear glow when detonated */}
+                     {strikePhase === 'detonation' && weapon === 'Nuclear' && (
+                       <motion.div
+                         initial={{ opacity: 0 }}
+                         animate={{ opacity: [0, 0.3, 0] }}
+                         transition={{ duration: 2 }}
+                         style={{ position: 'fixed', inset: 0, background: 'rgba(241,196,15,0.1)', pointerEvents: 'none', zIndex: 1000 }}
+                       />
+                     )}
+                   </div>
 
                 </div>
               )}
@@ -418,19 +574,51 @@ const Simulator = () => {
               transition={{ duration: 0.6 }}
             >
               {isStrikeMode && (
-                <div style={{ marginBottom: '2rem', padding: '1.5rem 2rem', background: 'rgba(231, 76, 60, 0.1)', border: '1px solid rgba(231, 76, 60, 0.3)', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ff4757', animation: 'livePulse 1s infinite' }} />
-                  <div>
-                    <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '900', color: '#ff4757', letterSpacing: '2px' }}>KINETIC IMPACT REPORT: {targetCountry.toUpperCase()}</h2>
-                    <div style={{ fontSize: '11px', color: '#8aa', marginTop: '4px' }}>POST-STRIKE DATA SYNTHESIS | WEAPON: {weapon.toUpperCase()} | STATUS: CRITICAL</div>
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  style={{ marginBottom: '2rem', padding: '1.5rem 2rem', background: 'rgba(231, 76, 60, 0.15)', border: '1px solid #ff4757', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 0 30px rgba(231,76,60,0.2)' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ff4757', animation: 'livePulse 1s infinite' }} />
+                    <div>
+                      <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '900', color: '#ff4757', letterSpacing: '3px' }}>TACTICAL DAMAGE ASSESSMENT: {targetCountry.toUpperCase()}</h2>
+                      <div style={{ fontSize: '11px', color: '#8aa', marginTop: '4px', fontWeight: '800' }}>POST-KINETIC RECONNAISSANCE | WEAPON: {weapon.toUpperCase()} | IMPACT RADIUS: {weapon === 'Nuclear' ? '500km' : '50km'}</div>
+                    </div>
                   </div>
-                </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '10px', color: '#8aa', fontWeight: '800' }}>CIVILIAN SURVIVAL RATE</div>
+                    <div style={{ fontSize: '24px', fontWeight: '900', color: populationStats?.surviving > 99.5 ? '#2ecc71' : '#e74c3c' }}>{populationStats?.surviving.toFixed(3)}%</div>
+                  </div>
+                </motion.div>
               )}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
                 
                 {/* Main Results Column */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', minWidth: 0 }}>
                   
+                  {isStrikeMode && (
+                    <div style={{ background: 'rgba(0,0,0,0.5)', borderRadius: '32px', height: '300px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', position: 'relative', boxShadow: '0 10px 40px rgba(0,0,0,0.5)' }}>
+                       <WorldGlobe
+                          width={800}
+                          height={300}
+                          backgroundColor="rgba(0,0,0,0)"
+                          globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
+                          ringsData={impacts}
+                          ringColor={d => d.color}
+                          ringMaxRadius={d => d.size * 0.8}
+                          ringPropagationSpeed={2}
+                          ringRepeatPeriod={800}
+                          animateIn={false}
+                       />
+                       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent 40%)', pointerEvents: 'none' }} />
+                       <div style={{ position: 'absolute', bottom: '20px', left: '30px', background: 'rgba(231,76,60,0.2)', border: '1px solid #e74c3c', padding: '10px 15px', borderRadius: '12px', backdropFilter: 'blur(10px)' }}>
+                          <div style={{ fontSize: '10px', color: '#ff4757', fontWeight: '900', letterSpacing: '1px' }}>GROUND ZERO COORDINATES</div>
+                          <div style={{ fontSize: '14px', fontWeight: '900', fontFamily: 'monospace' }}>LAT: {TARGET_COORDS[targetCountry]?.[0]} / LNG: {TARGET_COORDS[targetCountry]?.[1]}</div>
+                       </div>
+                    </div>
+                  )}
+
                   {/* High-Level Score Cards */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
                     {[
@@ -474,20 +662,41 @@ const Simulator = () => {
                   </div>
 
                   {/* Deep Impact Timeline */}
-                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '30px', borderRadius: '24px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '2rem' }}>Phase-Based Impact Projection</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '32px', borderRadius: '32px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+                        <h3 style={{ fontSize: '18px', fontWeight: '900', letterSpacing: '2px', color: isStrikeMode ? '#e74c3c' : '#fff' }}>
+                          {isStrikeMode ? 'POST-IMPACT ECONOMIC COLLAPSE' : 'CRISIS ESCALATION TIMELINE'}
+                        </h3>
+                        <div style={{ fontSize: '10px', color: '#5a7a9a', fontWeight: '800' }}>{isStrikeMode ? '45-DAY PROJECTION' : '180-DAY SCAN'}</div>
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                       {simResult.results.timeline.map((item, i) => (
-                        <div key={i} style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
-                          <div style={{ textAlign: 'right', minWidth: '80px' }}>
-                             <div style={{ fontSize: '12px', color: '#5a7a9a', fontWeight: '900' }}>DAY</div>
-                             <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--primary)' }}>{item.day}</div>
+                        <motion.div 
+                          key={i}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.5 + (i * 0.1) }}
+                          style={{ display: 'flex', gap: '24px', position: 'relative' }}
+                        >
+                          {i !== simResult.results.timeline.length - 1 && (
+                            <div style={{ position: 'absolute', left: '20px', top: '40px', bottom: '-24px', width: '2px', background: 'linear-gradient(to bottom, rgba(231,76,60,0.3), rgba(255,255,255,0.05))' }} />
+                          )}
+                          <div style={{ 
+                            width: '42px', height: '42px', borderRadius: '12px', 
+                            background: isStrikeMode ? (i === 0 ? '#e74c3c' : 'rgba(231,76,60,0.1)') : 'rgba(255,255,255,0.05)', 
+                            border: `1px solid ${isStrikeMode ? (i === 0 ? '#ff4757' : 'rgba(231,76,60,0.2)') : 'rgba(255,255,255,0.1)'}`,
+                            display: 'flex', flexShrink: 0, alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900', 
+                            color: i === 0 && isStrikeMode ? '#fff' : '#5a7a9a',
+                            boxShadow: i === 0 && isStrikeMode ? '0 0 20px rgba(231,76,60,0.4)' : 'none'
+                          }}>
+                            {item.day || `D+${(i+1)*5}`}
                           </div>
-                          <div style={{ flex: 1, padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
-                             <div style={{ fontWeight: '800', marginBottom: '6px', color: '#fff' }}>{item.event}</div>
-                             <div style={{ fontSize: '13px', color: '#8aa' }}>{item.impact}</div>
+                          <div style={{ flex: 1, paddingTop: '4px' }}>
+                            <div style={{ fontSize: '14px', fontWeight: '800', marginBottom: '6px', color: i === 0 && isStrikeMode ? '#ff4757' : '#fff' }}>{item.event}</div>
+                            <div style={{ fontSize: '12.5px', color: '#8aa', lineHeight: '1.6' }}>{item.impact}</div>
                           </div>
-                        </div>
+                        </motion.div>
                       ))}
                     </div>
                   </div>
