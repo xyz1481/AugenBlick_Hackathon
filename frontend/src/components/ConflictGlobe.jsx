@@ -43,6 +43,7 @@ import HISTORICAL_DATA from "../data/historicalConflicts.json";
 import TRADE_DATA from "../data/trade.json";
 import GLOBAL_INTEL from "../data/globalIntel.json";
 import API_BASE_URL from "../api/config";
+import { AiInsightsCard } from "./AiInsightsCard";
 import WidgetPanel from "./WidgetPanel";
 
 // --- DATA DEFINITIONS ---
@@ -99,11 +100,11 @@ const COUNTRY_COORDS = {
 
 const LAYER_GROUPS = {
   CONFLICT: [
-    { id: "Iran Attacks", label: "IRAN ATTACKS", icon: <Zap size={12} />, active: true },
-    { id: "Intel Hotspots", label: "INTEL HOTSPOTS", icon: <Eye size={12} />, active: true },
-    { id: "Conflict Zones", label: "CONFLICT ZONES", icon: <AlertTriangle size={12} />, active: true },
-    { id: "Military Bases", label: "MILITARY BASES", icon: <Shield size={12} />, active: true },
-    { id: "Nuclear Sites", label: "NUCLEAR SITES", icon: <Activity size={12} />, active: true },
+    { id: "Iran Attacks", label: "IRAN ATTACKS", icon: <Zap size={12} />, active: false },
+    { id: "Intel Hotspots", label: "INTEL HOTSPOTS", icon: <Eye size={12} />, active: false },
+    { id: "Conflict Zones", label: "CONFLICT ZONES", icon: <AlertTriangle size={12} />, active: false },
+    { id: "Military Bases", label: "MILITARY BASES", icon: <Shield size={12} />, active: false },
+    { id: "Nuclear Sites", label: "NUCLEAR SITES", icon: <Activity size={12} />, active: false },
     { id: "Gamma Irradiators", label: "GAMMA IRRADIATORS", icon: <Wind size={12} />, active: false },
     { id: "Spaceports", label: "SPACEPORTS", icon: <Zap size={12} />, active: false },
     { id: "Undersea Cables", label: "UNDERSEA CABLES", icon: <Zap size={12} />, active: false },
@@ -129,17 +130,17 @@ const LAYER_GROUPS = {
     { id: "Orbital Surveillance", label: "ORBITAL SURV", icon: <Eye size={12} />, active: false }
   ],
   FINANCE: [
-    { id: "stock_exchange", label: "STOCK EXCHANGES", icon: <TrendingUp size={12} />, active: true },
-    { id: "central_bank", label: "CENTRAL BANKS", icon: <CreditCard size={12} />, active: true },
-    { id: "cyber_threats", label: "CYBER THREATS", icon: <Zap size={12} />, active: true },
+    { id: "stock_exchange", label: "STOCK EXCHANGES", icon: <TrendingUp size={12} />, active: false },
+    { id: "central_bank", label: "CENTRAL BANKS", icon: <CreditCard size={12} />, active: false },
+    { id: "cyber_threats", label: "CYBER THREATS", icon: <Zap size={12} />, active: false },
     { id: "economic_centers", label: "ECONOMIC CENTERS", icon: <Activity size={12} />, active: false }
   ],
   SUPPLY_CHAIN: [
-    { id: "Ship Traffic", label: "MARITIME VESSELS", icon: <Anchor size={12} />, active: true },
-    { id: "Trade Routes", label: "SHIPPING LANES", icon: <Ship size={12} />, active: true },
-    { id: "Pipelines", label: "ENERGY PIPELINES", icon: <Fuel size={12} />, active: true },
-    { id: "Aviation", label: "AIR CARGO ROUTES", icon: <Plane size={12} />, active: true },
-    { id: "Strategic Waterways", label: "CHOKEPOINTS", icon: <Layers size={12} />, active: true }
+    { id: "Ship Traffic", label: "MARITIME VESSELS", icon: <Anchor size={12} />, active: false },
+    { id: "Trade Routes", label: "SHIPPING LANES", icon: <Ship size={12} />, active: false },
+    { id: "Pipelines", label: "ENERGY PIPELINES", icon: <Fuel size={12} />, active: false },
+    { id: "Aviation", label: "AIR CARGO ROUTES", icon: <Plane size={12} />, active: false },
+    { id: "Strategic Waterways", label: "CHOKEPOINTS", icon: <Layers size={12} />, active: false }
   ]
 };
 
@@ -292,6 +293,7 @@ export default function ConflictGlobe() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("Global");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
 
   // -- DATA STATE --
   const [countries, setCountries] = useState({ features: [] });
@@ -399,15 +401,15 @@ export default function ConflictGlobe() {
     if (!s || !t) return null;
 
     let path = [s];
-    
+
     // Simple heuristic-based waypoint insertion for 'proper' paths
     if (route.corridor.includes('Suez')) path.push(WAYPOINTS.SUEZ);
     if (route.corridor.includes('Hormuz')) path.push(WAYPOINTS.HORMUZ);
     if (route.corridor.includes('Malacca')) path.push(WAYPOINTS.MALACCA);
     if (route.corridor.includes('Panama')) path.push(WAYPOINTS.PANAMA);
     if (route.corridor.includes('Arctic') || route.corridor.includes('Atlantic')) {
-        // Add middle-of-ocean safety points
-        if (s[1] > 0 && t[1] < -50) path.push([40, -40]); 
+      // Add middle-of-ocean safety points
+      if (s[1] > 0 && t[1] < -50) path.push([40, -40]);
     }
 
     path.push(t);
@@ -416,36 +418,36 @@ export default function ConflictGlobe() {
 
   const supplyChainData = useMemo(() => {
     if (viewMode !== 'SUPPLY_CHAIN') return { arcs: [], paths: [] };
-    
+
     const arcs = [];
     const paths = [];
 
     TRADE_DATA.forEach(t => {
-       const sCoords = COUNTRY_COORDS[t.source];
-       const tCoords = COUNTRY_COORDS[t.target];
-       if (!sCoords || !tCoords) return;
+      const sCoords = COUNTRY_COORDS[t.source];
+      const tCoords = COUNTRY_COORDS[t.target];
+      if (!sCoords || !tCoords) return;
 
-       if (activeLayers.has('Aviation') && t.goods.some(g => g.includes('Electronics') || g.includes('Aircraft'))) {
-          arcs.push({
-            startLat: sCoords[0], startLng: sCoords[1],
-            endLat: tCoords[0], endLng: tCoords[1],
-            color: ['#f1c40f22', '#f1c40fcc', '#f1c40f22'],
+      if (activeLayers.has('Aviation') && t.goods.some(g => g.includes('Electronics') || g.includes('Aircraft'))) {
+        arcs.push({
+          startLat: sCoords[0], startLng: sCoords[1],
+          endLat: tCoords[0], endLng: tCoords[1],
+          color: ['#f1c40f22', '#f1c40fcc', '#f1c40f22'],
+          data: t,
+          type: 'Aviation'
+        });
+      }
+
+      if (activeLayers.has('Trade Routes')) {
+        const sPath = getShippingPath(t);
+        if (sPath) {
+          paths.push({
+            path: sPath,
+            color: '#1abc9c',
             data: t,
-            type: 'Aviation'
+            type: 'Maritime'
           });
-       }
-
-       if (activeLayers.has('Trade Routes')) {
-          const sPath = getShippingPath(t);
-          if (sPath) {
-            paths.push({
-               path: sPath,
-               color: '#1abc9c',
-               data: t,
-               type: 'Maritime'
-            });
-          }
-       }
+        }
+      }
     });
 
     return { arcs, paths };
@@ -502,27 +504,27 @@ export default function ConflictGlobe() {
 
     // 3. Live Universal Telemetry (Flights & Vessels)
     if (activeLayers.has("Aviation") || activeLayers.has("Military Activity") || activeLayers.has("AIR CARGO ROUTES") || activeLayers.has("AVIATION")) {
-        trackingData.flights.forEach(f => {
-            baseMarkers.push({
-                ...f,
-                label: f.callsign,
-                text: `${f.airline || 'Flight'} | Alt: ${f.alt}ft | Speed: ${f.speed}${f.isAPI ? 'kt (Live)' : 'kt'}`,
-                type: f.isMilitary ? 'military' : 'political',
-                iconType: 'plane'
-            });
+      trackingData.flights.forEach(f => {
+        baseMarkers.push({
+          ...f,
+          label: f.callsign,
+          text: `${f.airline || 'Flight'} | Alt: ${f.alt}ft | Speed: ${f.speed}${f.isAPI ? 'kt (Live)' : 'kt'}`,
+          type: f.isMilitary ? 'military' : 'political',
+          iconType: 'plane'
         });
+      });
     }
 
     if (activeLayers.has("Trade Routes") || activeLayers.has("MARITIME VESSELS") || activeLayers.has("Ship Traffic")) {
-        trackingData.vessels.forEach(v => {
-            baseMarkers.push({
-                ...v,
-                label: v.name,
-                text: `Status: ${v.status} | Speed: ${v.speed}kn | Chokepoint: ${v.chokepoint}`,
-                type: 'strategic_waterway',
-                iconType: 'ship'
-            });
+      trackingData.vessels.forEach(v => {
+        baseMarkers.push({
+          ...v,
+          label: v.name,
+          text: `Status: ${v.status} | Speed: ${v.speed}kn | Chokepoint: ${v.chokepoint}`,
+          type: 'strategic_waterway',
+          iconType: 'ship'
         });
+      });
     }
 
     return baseMarkers;
@@ -605,26 +607,6 @@ export default function ConflictGlobe() {
             />
 
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <h2
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "900",
-                  letterSpacing: "2px",
-                  color: "#fff",
-                  margin: 0,
-                }}
-              >
-                MONITOR{" "}
-                <span
-                  style={{
-                    color: "#5a7a9a",
-                    fontSize: "10px",
-                    fontWeight: "400",
-                  }}
-                >
-                  v2.6.1
-                </span>
-              </h2>
               <div
                 style={{ display: "flex", alignItems: "center", gap: "6px" }}
               >
@@ -690,42 +672,6 @@ export default function ConflictGlobe() {
               flex: 1,
             }}
           >
-            <div
-              style={{
-                background: "#e67e2222",
-                border: "1px solid #e67e2244",
-                padding: "4px 10px",
-                borderRadius: "8px",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-            >
-              <span
-                style={{ fontSize: "9px", color: "#e67e22", fontWeight: "900" }}
-              >
-                DEFCON 5
-              </span>
-              <div
-                style={{
-                  width: "40px",
-                  height: "4px",
-                  background: "rgba(230,126,34,0.1)",
-                  borderRadius: "2px",
-                }}
-              >
-                <div
-                  style={{
-                    width: "12%",
-                    height: "100%",
-                    background: "#e67e22",
-                  }}
-                />
-              </div>
-              <span style={{ fontSize: "9px", color: "#e67e22", opacity: 0.6 }}>
-                1%
-              </span>
-            </div>
           </div>
 
           {/* RIGHT: Search & System Controls */}
@@ -798,7 +744,7 @@ export default function ConflictGlobe() {
             letterSpacing: "1px",
           }}
         >
-          {new Date().toUTCString().toUpperCase()}
+          {new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).toUpperCase()} IST
         </div>
         <div
           style={{
@@ -850,15 +796,15 @@ export default function ConflictGlobe() {
           position: "relative",
         }}
       >
-        {/* LEFT LAYERS SIDEBAR */}
+        {/* LEFT AI INSIGHTS SIDEBAR */}
         <motion.div
           animate={{
-            x: isSidebarOpen ? 0 : -320,
-            width: isSidebarOpen ? 320 : 0,
+            x: isSidebarOpen ? 0 : -340,
+            width: isSidebarOpen ? 340 : 0,
           }}
           style={{
-            background: "rgba(6,11,24,0.85)",
-            backdropFilter: "blur(20px)",
+            background: "rgba(6,11,24,0.92)",
+            backdropFilter: "blur(25px)",
             borderRight: "1px solid #1e2d4a",
             display: "flex",
             flexDirection: "column",
@@ -866,136 +812,65 @@ export default function ConflictGlobe() {
             overflow: "hidden",
             position: "relative",
             flexShrink: 0,
+            boxShadow: "10px 0 30px rgba(0,0,0,0.5)"
           }}
         >
           <div
             style={{
-              padding: "20px",
+              padding: "24px 20px",
               borderBottom: "1px solid #1e2d4a",
-              width: "320px",
+              width: "340px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              background: "rgba(255,255,255,0.02)"
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "20px",
-              }}
-            >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <GlobeIcon size={16} color="#2ecc71" />
               <h3
                 style={{
-                  fontSize: "12px",
+                  fontSize: "13px",
                   fontWeight: "900",
-                  letterSpacing: "1px",
-                  color: "#5a7a9a",
+                  letterSpacing: "2px",
+                  color: "#fff",
                   margin: 0,
                 }}
               >
-                LAYERS
+                DAILY INTELLIGENCE
               </h3>
-              <button
-                onClick={() => setIsSidebarOpen(false)}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                <X size={16} color="#5a7a9a" />
-              </button>
             </div>
-            <div
+            <button
+              onClick={() => setIsSidebarOpen(false)}
               style={{
-                background: "#0a1020",
-                borderRadius: "10px",
-                padding: "8px 12px",
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                border: "1px solid #1e2d4a",
+                background: "rgba(255,255,255,0.05)",
+                border: "none",
+                borderRadius: "4px",
+                padding: "4px",
+                cursor: "pointer",
               }}
             >
-              <Search size={14} color="#5a7a9a" />
-              <input
-                placeholder="Search layers..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  outline: "none",
-                  color: "#fff",
-                  fontSize: "12px",
-                  width: "100%",
-                }}
-              />
-            </div>
+              <X size={16} color="#5a7a9a" />
+            </button>
           </div>
 
           <div
             style={{
               flex: 1,
               overflowY: "auto",
-              padding: "10px",
-              width: "320px",
+              width: "340px",
             }}
           >
-            {visibleLayers.map((layer) => (
-              <div
-                key={layer.id}
-                onClick={() => toggleLayer(layer.id)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "12px 16px",
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  background: activeLayers.has(layer.id)
-                    ? "rgba(255,255,255,0.03)"
-                    : "transparent",
-                }}
-              >
-                <div
-                  style={{
-                    width: "16px",
-                    height: "16px",
-                    borderRadius: "4px",
-                    border: "1px solid #1e2d4a",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: activeLayers.has(layer.id)
-                      ? "#2ecc71"
-                      : "transparent",
-                  }}
-                >
-                  {activeLayers.has(layer.id) && (
-                    <Check size={10} color="#000" strokeWidth={4} />
-                  )}
-                </div>
-                <div
-                  style={{
-                    color: activeLayers.has(layer.id) ? "#fff" : "#5a7a9a",
-                    fontSize: "11px",
-                    fontWeight: "800",
-                    flex: 1,
-                  }}
-                >
-                  {layer.label}
-                </div>
-                <div style={{ color: "#5a7a9a" }}>{layer.icon}</div>
-              </div>
-            ))}
+            <AiInsightsCard sidebar={true} />
           </div>
 
+          {/* Footer Info */}
           <div
             style={{
-              padding: "20px",
+              padding: "16px 20px",
               borderTop: "1px solid #1e2d4a",
-              width: "320px",
+              width: "340px",
+              background: "rgba(0,0,0,0.3)"
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -1004,13 +879,14 @@ export default function ConflictGlobe() {
                   width: "8px",
                   height: "8px",
                   borderRadius: "50%",
-                  background: "#3498db",
+                  background: "#2ecc71",
+                  boxShadow: "0 0 8px #2ecc71"
                 }}
               />
               <span
-                style={{ fontSize: "11px", fontWeight: "800", color: "#fff" }}
+                style={{ fontSize: "11px", fontWeight: "800", color: "#8aa" }}
               >
-                Elie Habib - Someoneâ„¢
+                Reality AI Engine Active
               </span>
             </div>
           </div>
@@ -1097,15 +973,15 @@ export default function ConflictGlobe() {
                   htmlElement={(d) => {
                     const el = document.createElement('div');
                     const color = EVENT_TYPES[d.type]?.color || "#fff";
-                    
+
                     // Choose icon based on iconType
                     let iconSVG = '';
                     if (d.iconType === 'plane') {
-                       iconSVG = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="${color}" stroke-width="3" fill="none" style="transform: rotate(${(d.direction || 0) - 45}deg); filter: drop-shadow(0 0 4px ${color})"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-1.1-.3-2.2.4-2.2 1.5l0 0c0 .6.3 1.2.8 1.5l7.3 3.3-3.3 3.3-3-.4c-.5-.1-1.1.1-1.4.5l-.3.3c-.4.4-.4 1.1 0 1.5l1.6 1.6c.4.4 1.1.4 1.5 0l.3-.3c.4-.3.6-.9.5-1.4l-.4-3 3.3-3.3 3.3 7.3c.3.5.9.8 1.5.8l0 0c1.1 0 1.8-1.1 1.5-2.2z"/></svg>`;
+                      iconSVG = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="${color}" stroke-width="3" fill="none" style="transform: rotate(${(d.direction || 0) - 45}deg); filter: drop-shadow(0 0 4px ${color})"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-1.1-.3-2.2.4-2.2 1.5l0 0c0 .6.3 1.2.8 1.5l7.3 3.3-3.3 3.3-3-.4c-.5-.1-1.1.1-1.4.5l-.3.3c-.4.4-.4 1.1 0 1.5l1.6 1.6c.4.4 1.1.4 1.5 0l.3-.3c.4-.3.6-.9.5-1.4l-.4-3 3.3-3.3 3.3 7.3c.3.5.9.8 1.5.8l0 0c1.1 0 1.8-1.1 1.5-2.2z"/></svg>`;
                     } else if (d.iconType === 'ship') {
-                       iconSVG = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="${color}" stroke-width="3" fill="none" style="filter: drop-shadow(0 0 4px ${color})"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M9 12h6"/></svg>`;
+                      iconSVG = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="${color}" stroke-width="3" fill="none" style="filter: drop-shadow(0 0 4px ${color})"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M9 12h6"/></svg>`;
                     } else {
-                       iconSVG = `<div style="width: 8px; height: 8px; border-radius: 50%; background: ${color}; box-shadow: 0 0 8px ${color}"></div>`;
+                      iconSVG = `<div style="width: 8px; height: 8px; border-radius: 50%; background: ${color}; box-shadow: 0 0 8px ${color}"></div>`;
                     }
 
                     el.innerHTML = `
@@ -1115,12 +991,12 @@ export default function ConflictGlobe() {
                       </div>
                     `;
                     el.onclick = () => {
-                        // High-fidelity tooltip logic
-                         const tooltip = document.createElement('div');
-                         tooltip.style.cssText = `background:#0d1527; padding:12px; border:1px solid ${color}; border-radius:8px; pointer-events:none; z-index:1000; color:#fff; font-size:11px`;
-                         tooltip.innerHTML = `<strong>${d.label}</strong><br/>${d.text}`;
-                         // Simple click to show detail panel if applicable
-                         if (d.data) setSelectedRoute(d.data);
+                      // High-fidelity tooltip logic
+                      const tooltip = document.createElement('div');
+                      tooltip.style.cssText = `background:#0d1527; padding:12px; border:1px solid ${color}; border-radius:8px; pointer-events:none; z-index:1000; color:#fff; font-size:11px`;
+                      tooltip.innerHTML = `<strong>${d.label}</strong><br/>${d.text}`;
+                      // Simple click to show detail panel if applicable
+                      if (d.data) setSelectedRoute(d.data);
                     };
                     return el;
                   }}
@@ -1133,15 +1009,15 @@ export default function ConflictGlobe() {
                     ...(viewMode === "SUPPLY_CHAIN" ? supplyChainData.arcs : []),
                     ...(viewMode === "COMMODITIES" && activeLayers.has("trade_routes")
                       ? TRADE_DATA.slice(0, 30).map((t) => {
-                          const sCoords = FINANCE_POINTS[Math.floor(Math.random() * FINANCE_POINTS.length)];
-                          return {
-                            startLat: sCoords.lat,
-                            startLng: sCoords.lng,
-                            endLat: 35 + Math.random() * 10,
-                            endLng: 104 + Math.random() * 10,
-                            color: ["#f1c40f22", "#f1c40fcc", "#f1c40f22"]
-                          };
-                        })
+                        const sCoords = FINANCE_POINTS[Math.floor(Math.random() * FINANCE_POINTS.length)];
+                        return {
+                          startLat: sCoords.lat,
+                          startLng: sCoords.lng,
+                          endLat: 35 + Math.random() * 10,
+                          endLng: 104 + Math.random() * 10,
+                          color: ["#f1c40f22", "#f1c40fcc", "#f1c40f22"]
+                        };
+                      })
                       : [])
                   ]}
                   arcColor={(d) => d.color}
@@ -1156,10 +1032,10 @@ export default function ConflictGlobe() {
                     ...(viewMode === "SUPPLY_CHAIN" ? supplyChainData.paths : []),
                     ...(viewMode === "SUPPLY_CHAIN" && activeLayers.has("Pipelines")
                       ? COMMODITY_LINES.filter((l) => l.type === "pipeline").map((l) => ({
-                          path: [[l.startLat, l.startLng], [l.endLat, l.endLng]],
-                          color: l.color,
-                          name: l.name,
-                        }))
+                        path: [[l.startLat, l.startLng], [l.endLat, l.endLng]],
+                        color: l.color,
+                        name: l.name,
+                      }))
                       : [])
                   ]}
                   pathColor={(d) => d.color}
@@ -1198,44 +1074,44 @@ export default function ConflictGlobe() {
                         <div style={{ fontSize: '10px', color: '#f1c40f', fontWeight: '900', letterSpacing: '1px' }}>SUPPLY CHAIN INTEL</div>
                         <X size={16} color="#5a7a9a" onClick={() => setSelectedRoute(null)} style={{ cursor: 'pointer' }} />
                       </div>
-                      
+
                       <h4 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: '900', color: '#fff' }}>
                         {selectedRoute.source} → {selectedRoute.target}
                       </h4>
                       <div style={{ fontSize: '12px', color: '#5a7a9a', marginBottom: '16px', fontWeight: '800' }}>{selectedRoute.corridor}</div>
 
                       <div style={{ display: 'grid', gap: '12px' }}>
-                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '10px' }}>
-                            <div style={{ fontSize: '10px', color: '#5a7a9a', marginBottom: '4px' }}>CARGO SPECIFICATIONS</div>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                               {selectedRoute.goods.map(g => (
-                                 <span key={g} style={{ background: '#f1c40f22', color: '#f1c40f', padding: '2px 8px', borderRadius: '4px', fontSize: '9px', fontWeight: '900' }}>{g}</span>
-                               ))}
-                            </div>
-                         </div>
+                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '10px' }}>
+                          <div style={{ fontSize: '10px', color: '#5a7a9a', marginBottom: '4px' }}>CARGO SPECIFICATIONS</div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            {selectedRoute.goods.map(g => (
+                              <span key={g} style={{ background: '#f1c40f22', color: '#f1c40f', padding: '2px 8px', borderRadius: '4px', fontSize: '9px', fontWeight: '900' }}>{g}</span>
+                            ))}
+                          </div>
+                        </div>
 
-                         <div style={{ display: 'flex', gap: '10px' }}>
-                            <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '10px' }}>
-                               <div style={{ fontSize: '10px', color: '#5a7a9a', marginBottom: '4px' }}>VALUE</div>
-                               <div style={{ fontSize: '13px', fontWeight: '900', color: '#2ecc71' }}>{selectedRoute.value}</div>
-                            </div>
-                            <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '10px' }}>
-                               <div style={{ fontSize: '10px', color: '#5a7a9a', marginBottom: '4px' }}>VOLUME</div>
-                               <div style={{ fontSize: '13px', fontWeight: '900', color: '#fff' }}>{selectedRoute.volume}</div>
-                            </div>
-                         </div>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '10px' }}>
+                            <div style={{ fontSize: '10px', color: '#5a7a9a', marginBottom: '4px' }}>VALUE</div>
+                            <div style={{ fontSize: '13px', fontWeight: '900', color: '#2ecc71' }}>{selectedRoute.value}</div>
+                          </div>
+                          <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '10px' }}>
+                            <div style={{ fontSize: '10px', color: '#5a7a9a', marginBottom: '4px' }}>VOLUME</div>
+                            <div style={{ fontSize: '13px', fontWeight: '900', color: '#fff' }}>{selectedRoute.volume}</div>
+                          </div>
+                        </div>
 
-                         <div style={{ background: 'rgba(231,76,60,0.1)', border: '1px solid rgba(231,76,60,0.2)', padding: '10px', borderRadius: '10px' }}>
-                            <div style={{ fontSize: '10px', color: '#e74c3c', marginBottom: '4px' }}>RISC COEFFICIENT</div>
-                            <div style={{ fontSize: '11px', color: '#fff', fontWeight: '800' }}>{selectedRoute.risk_factors}</div>
-                         </div>
+                        <div style={{ background: 'rgba(231,76,60,0.1)', border: '1px solid rgba(231,76,60,0.2)', padding: '10px', borderRadius: '10px' }}>
+                          <div style={{ fontSize: '10px', color: '#e74c3c', marginBottom: '4px' }}>RISC COEFFICIENT</div>
+                          <div style={{ fontSize: '11px', color: '#fff', fontWeight: '800' }}>{selectedRoute.risk_factors}</div>
+                        </div>
                       </div>
 
-                      <button 
+                      <button
                         style={{ width: '100%', marginTop: '20px', background: '#f1c40f', color: '#000', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: '900', fontSize: '11px', cursor: 'pointer' }}
                         onClick={() => navigate('/analysis')}
                       >
-                         GENERATE SUPPLY CHAIN REPORT
+                        GENERATE SUPPLY CHAIN REPORT
                       </button>
                     </motion.div>
                   )}
@@ -1438,32 +1314,32 @@ export default function ConflictGlobe() {
                           const x = (m.lng + 180) * (1000 / 360);
                           const y = (90 - m.lat) * (500 / 180);
                           const color = EVENT_TYPES[m.type]?.color || "#fff";
-                          
+
                           let symbol = null;
                           if (m.iconType === 'plane') {
-                             symbol = (
-                               <path 
-                                 d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" 
-                                 fill={color} 
-                                 transform={`translate(${x-6}, ${y-6}) scale(0.5) rotate(${(m.direction || 0) + 180}, 12, 12)`} 
-                                 style={{ filter: `drop-shadow(0 0 3px ${color})` }}
-                               />
-                             );
+                            symbol = (
+                              <path
+                                d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z"
+                                fill={color}
+                                transform={`translate(${x - 6}, ${y - 6}) scale(0.5) rotate(${(m.direction || 0) + 180}, 12, 12)`}
+                                style={{ filter: `drop-shadow(0 0 3px ${color})` }}
+                              />
+                            );
                           } else if (m.iconType === 'ship') {
-                             symbol = (
-                               <path 
-                                 d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" 
-                                 fill={color} 
-                                 transform={`translate(${x-5}, ${y-5}) scale(0.4)`} 
-                                 style={{ filter: `drop-shadow(0 0 3px ${color})` }}
-                               />
-                             );
+                            symbol = (
+                              <path
+                                d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z"
+                                fill={color}
+                                transform={`translate(${x - 5}, ${y - 5}) scale(0.4)`}
+                                style={{ filter: `drop-shadow(0 0 3px ${color})` }}
+                              />
+                            );
                           } else {
-                             symbol = (
-                               <circle cx={x} cy={y} r="3" fill={color} style={{ filter: `drop-shadow(0 0 5px ${color})` }}>
-                                 <animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite" />
-                               </circle>
-                             );
+                            symbol = (
+                              <circle cx={x} cy={y} r="3" fill={color} style={{ filter: `drop-shadow(0 0 5px ${color})` }}>
+                                <animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite" />
+                              </circle>
+                            );
                           }
 
                           return (
@@ -1516,90 +1392,256 @@ export default function ConflictGlobe() {
             </button>
           </div>
 
-          {/* RIGHT SIDE TOOLS */}
+          {/* RIGHT SIDEBAR TRIGGER & TOOLS */}
           <div
             style={{
               position: "absolute",
               top: "20px",
-              right: "20px",
+              right: isRightSidebarOpen ? "340px" : "20px",
               display: "flex",
               flexDirection: "column",
               gap: "8px",
-              zIndex: 10,
+              zIndex: 101,
+              transition: "right 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              alignItems: "flex-end"
             }}
           >
-            <button
-              style={{
-                width: "40px",
-                height: "40px",
-                background: "rgba(13,21,39,0.9)",
-                border: "1px solid #1e2d4a",
-                borderRadius: "8px",
-                color: "#fff",
-                fontSize: "18px",
-                fontWeight: "900",
-                cursor: "pointer",
-              }}
-              onClick={() => {
-                if (globeRef.current) {
-                  const pov = globeRef.current.pointOfView();
-                  globeRef.current.pointOfView(
-                    { altitude: Math.max(0.5, pov.altitude - 0.5) },
-                    300,
-                  );
-                }
-              }}
-            >
-              +
-            </button>
-            <button
-              style={{
-                width: "40px",
-                height: "40px",
-                background: "rgba(13,21,39,0.9)",
-                border: "1px solid #1e2d4a",
-                borderRadius: "8px",
-                color: "#fff",
-                fontSize: "18px",
-                fontWeight: "900",
-                cursor: "pointer",
-              }}
-              onClick={() => {
-                if (globeRef.current) {
-                  const pov = globeRef.current.pointOfView();
-                  globeRef.current.pointOfView(
-                    { altitude: Math.min(5, pov.altitude + 0.5) },
-                    300,
-                  );
-                }
-              }}
-            >
-              -
-            </button>
-            <button
-              style={{
-                width: "40px",
-                height: "40px",
-                background: "rgba(13,21,39,0.9)",
-                border: "1px solid #1e2d4a",
-                borderRadius: "8px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-              }}
-              onClick={() => {
-                if (globeRef.current) {
-                  globeRef.current.pointOfView(
-                    { lat: 0, lng: 0, altitude: 2.5 },
-                    1000,
-                  );
-                }
-              }}
-            >
-              <Crosshair size={18} color="#fff" />
-            </button>
+            {!isRightSidebarOpen && (
+              <button
+                onClick={() => setIsRightSidebarOpen(true)}
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  background: "rgba(13,21,39,0.9)",
+                  border: "1px solid #1e2d4a",
+                  borderRadius: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+              >
+                <Layers size={20} color="#fff" />
+              </button>
+            )}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <button
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  background: "rgba(13,21,39,0.9)",
+                  border: "1px solid #1e2d4a",
+                  borderRadius: "8px",
+                  color: "#fff",
+                  fontSize: "18px",
+                  fontWeight: "900",
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  if (globeRef.current) {
+                    const pov = globeRef.current.pointOfView();
+                    globeRef.current.pointOfView(
+                      { altitude: Math.max(0.2, pov.altitude - 0.4) },
+                      300,
+                    );
+                  }
+                }}
+              >
+                +
+              </button>
+              <button
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  background: "rgba(13,21,39,0.9)",
+                  border: "1px solid #1e2d4a",
+                  borderRadius: "8px",
+                  color: "#fff",
+                  fontSize: "18px",
+                  fontWeight: "900",
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  if (globeRef.current) {
+                    const pov = globeRef.current.pointOfView();
+                    globeRef.current.pointOfView(
+                      { altitude: Math.min(5, pov.altitude + 0.4) },
+                      300,
+                    );
+                  }
+                }}
+              >
+                -
+              </button>
+              <button
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  background: "rgba(13,21,39,0.9)",
+                  border: "1px solid #1e2d4a",
+                  borderRadius: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  if (globeRef.current) {
+                    globeRef.current.pointOfView(
+                      { lat: 0, lng: 0, altitude: 2.5 },
+                      1000,
+                    );
+                  }
+                }}
+              >
+                <Crosshair size={18} color="#fff" />
+              </button>
+            </div>
           </div>
+
+          {/* RIGHT LAYERS SIDEBAR */}
+          <motion.div
+            animate={{
+              x: isRightSidebarOpen ? 0 : 320,
+              width: isRightSidebarOpen ? 320 : 0,
+            }}
+            initial={{ x: 320, width: 0 }}
+            style={{
+              position: "absolute",
+              right: 0,
+              top: 0,
+              bottom: 0,
+              background: "rgba(6,11,24,0.9)",
+              backdropFilter: "blur(20px)",
+              borderLeft: "1px solid #1e2d4a",
+              display: "flex",
+              flexDirection: "column",
+              zIndex: 100,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                padding: "24px 20px",
+                borderBottom: "1px solid #1e2d4a",
+                width: "320px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "12px",
+                  fontWeight: "900",
+                  letterSpacing: "2px",
+                  color: "#5a7a9a",
+                  margin: 0,
+                }}
+              >
+                MAP LAYERS
+              </h3>
+              <button
+                onClick={() => setIsRightSidebarOpen(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <X size={16} color="#5a7a9a" />
+              </button>
+            </div>
+
+            <div style={{ padding: "16px 20px" }}>
+              <div
+                style={{
+                  background: "#0a1020",
+                  borderRadius: "8px",
+                  padding: "8px 12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  border: "1px solid #1e2d4a",
+                }}
+              >
+                <Search size={14} color="#5a7a9a" />
+                <input
+                  placeholder="Search layers..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    color: "#fff",
+                    fontSize: "12px",
+                    width: "100%",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                padding: "0 10px 20px",
+                width: "320px",
+              }}
+            >
+              {visibleLayers.map((layer) => (
+                <div
+                  key={layer.id}
+                  onClick={() => toggleLayer(layer.id)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    padding: "10px 16px",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    background: activeLayers.has(layer.id)
+                      ? "rgba(46, 204, 113, 0.1)"
+                      : "transparent",
+                    marginBottom: "4px"
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "16px",
+                      height: "16px",
+                      borderRadius: "4px",
+                      border: "1px solid #1e2d4a",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: activeLayers.has(layer.id)
+                        ? "#2ecc71"
+                        : "transparent",
+                    }}
+                  >
+                    {activeLayers.has(layer.id) && (
+                      <Check size={10} color="#000" strokeWidth={4} />
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      color: activeLayers.has(layer.id) ? "#fff" : "#5a7a9a",
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      flex: 1,
+                    }}
+                  >
+                    {layer.label}
+                  </div>
+                  <div style={{ color: "#5a7a9a" }}>{layer.icon}</div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </div>
 

@@ -24,16 +24,16 @@ const FEED_QUERIES = [
 
 // Keyword-to-event-type mapping
 const TYPE_KEYWORDS = {
-  nuclear:   ['nuclear', 'iaea', 'uranium', 'enrichment', 'warhead', 'plutonium', 'atomic'],
-  missile:   ['missile', 'icbm', 'rocket', 'ballistic', 'drone', 'shahed', 'intercept'],
-  naval:     ['tanker', 'ship', 'naval', 'fleet', 'carrier', 'strait', 'sea', 'port'],
-  blockade:  ['blockade', 'shipping', 'red sea', 'hormuz', 'suez', 'cargo', 'oil tanker'],
+  nuclear: ['nuclear', 'iaea', 'uranium', 'enrichment', 'warhead', 'plutonium', 'atomic'],
+  missile: ['missile', 'icbm', 'rocket', 'ballistic', 'drone', 'shahed', 'intercept'],
+  naval: ['tanker', 'ship', 'naval', 'fleet', 'carrier', 'strait', 'sea', 'port'],
+  blockade: ['blockade', 'shipping', 'red sea', 'hormuz', 'suez', 'cargo', 'oil tanker'],
   terrorism: ['terror', 'bombing', 'suicide', 'al-shabaab', 'isis', 'al-qaeda', 'hamas', 'hezbollah'],
-  military:  ['airstrike', 'strike', 'attack', 'frontline', 'battle', 'offensive', 'troops', 'forces', 'war', 'military', 'armor', 'tank'],
-  protest:   ['protest', 'riot', 'unrest', 'demonstration', 'rally', 'crackdown', 'crowd'],
+  military: ['airstrike', 'strike', 'attack', 'frontline', 'battle', 'offensive', 'troops', 'forces', 'war', 'military', 'armor', 'tank'],
+  protest: ['protest', 'riot', 'unrest', 'demonstration', 'rally', 'crackdown', 'crowd'],
   political: ['sanctions', 'summit', 'nato', 'un ', 'security council', 'diplomacy', 'election', 'coup', 'government'],
-  economic:  ['oil', 'crude', 'brent', 'market', 'ruble', 'sanctions', 'inflation', 'currency', 'gdp'],
-  fire:      ['fire', 'explosion', 'refinery', 'pipeline', 'infrastructure', 'factory', 'plant'],
+  economic: ['oil', 'crude', 'brent', 'market', 'ruble', 'sanctions', 'inflation', 'currency', 'gdp'],
+  fire: ['fire', 'explosion', 'refinery', 'pipeline', 'infrastructure', 'factory', 'plant'],
 };
 
 const detectType = (title, description = '') => {
@@ -121,85 +121,121 @@ const COUNTRY_COORDS = {
   '🌍 Global': { lat: 20, lng: 0 }
 };
 
+const { generateLiveInsights } = require('../services/groqService');
+
+const GNEWS_API_KEY = "9f315d7aed8ac8d00d813968a20e9e14";
+
 const getLiveFeed = async (req, res) => {
   try {
-    // Pick 5 random queries to increase diversity
-    const shuffled = FEED_QUERIES.sort(() => Math.random() - 0.5).slice(0, 5);
+    // We'll use a few broad queries to get a diverse set of news
+    const queries = ['war', 'conflict', 'geopolitics', 'military'];
+    const query = queries.join(' OR ');
 
-    const feedPromises = shuffled.map(async (query) => {
-      const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
-      try {
-        const response = await axios.get(url, {
-          timeout: 6000,
-          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; AugenBlick/1.0)' }
-        });
-        const feed = await parser.parseString(response.data);
-        return feed.items || [];
-      } catch {
-        return [];
-      }
-    });
+    const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=en&max=50&apikey=${GNEWS_API_KEY}`;
 
-    const allItemArrays = await Promise.all(feedPromises);
-    
-    // Balanced selection: take top 5 from each query array to ensure diversity
-    const balancedItems = [];
-    const maxPerQuery = 10;
-    for (let i = 0; i < maxPerQuery; i++) {
-      for (const arr of allItemArrays) {
-        if (arr[i]) balancedItems.push(arr[i]);
-      }
-    }
-
-    // Deduplicate by title
-    const seen = new Set();
-    const unique = balancedItems.filter(item => {
-      const key = (item.title || '').slice(0, 70).toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-
-    // Sort by date descending
-    unique.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
+    const response = await axios.get(url, { timeout: 8000 });
+    const articles = response.data.articles || [];
 
     // Format for frontend
-    const news = unique.slice(0, 25).map((item, idx) => {
-      const title = (item.title || '').replace(/\s*-\s*[A-Z][^-]+$/, '').trim(); // strip source suffix
-      const source = (() => {
-        const s = item.sourceData;
-        if (typeof s === 'string') return s;
-        if (s && typeof s === 'object') return s._ || '';
-        // Try extracting from title suffix "... - Reuters"
-        const m = (item.title || '').match(/\s*-\s*([A-Za-z ]+)$/);
-        return m ? m[1].trim() : 'News';
-      })();
-      const pubDate = item.pubDate || item.isoDate;
-      const type = detectType(title, item.contentSnippet);
-      const country = detectCountry(title, item.contentSnippet);
+    const news = articles.map((item, idx) => {
+      const title = item.title || '';
+      const source = item.source?.name || 'News';
+      const pubDate = item.publishedAt;
+      const type = detectType(title, item.description);
+      const country = detectCountry(title, item.description);
       const coords = COUNTRY_COORDS[country] || { lat: 20, lng: 0 };
 
       return {
         id: idx,
         time: pubDate ? new Date(pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
         ago: pubDate ? timeAgo(pubDate) : '',
+        pubDate,
         type,
         country,
         source,
         text: title,
-        link: item.link || '#',
+        link: item.url || '#',
         lat: coords.lat,
         lng: coords.lng,
       };
     });
 
-    console.log(`[LiveFeed] Serving ${news.length} real news items`);
-    res.json({ news });
+    // Deduplicate and sort
+    const seen = new Set();
+    const unique = news.filter(item => {
+      const key = item.text.slice(0, 70).toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+    console.log(`[LiveFeed] Serving ${unique.length} articles from GNews`);
+    res.json({ news: unique.slice(0, 30) });
 
   } catch (err) {
-    console.error('[LiveFeed] Error:', err.message);
-    res.status(500).json({ error: 'Failed to fetch live feed', news: [] });
+    console.error('[LiveFeed] GNews Error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch GNews feed', news: [] });
   }
 };
 
-module.exports = { getLiveFeed };
+const getLiveInsights = async (req, res) => {
+  try {
+    const url = `https://gnews.io/api/v4/search?q=geopolitics%20OR%20war&lang=en&max=20&apikey=${GNEWS_API_KEY}`;
+    const response = await axios.get(url, { timeout: 8000 });
+    const articles = response.data.articles || [];
+
+    // Map articles to simple format for Groq
+    const newsItems = articles.map(a => ({ text: a.title, country: detectCountry(a.title, a.description) }));
+    const insights = await generateLiveInsights(newsItems);
+
+    res.json(insights || {
+      briefingTitle: "DAILY GEOPOLITICAL BRIEFING",
+      summary: "Analytical engine recalibrating. Critical signals being synthesized from live intelligence streams.",
+      majorEvents: [
+        { event: "Data synthesis in progress", impact: "Strategic clarity pending further processing." }
+      ]
+    });
+  } catch (err) {
+    console.error("Insights API Error:", err);
+    res.status(500).json({ error: "Failed to generate insights" });
+  }
+};
+
+const getCurrencyRates = async (req, res) => {
+  const apiKey = process.env.EXCHANGE_RATES_API_KEY;
+  try {
+    // If we have an API key, we use a real service (e.g., exchangerate-api.com)
+    // Otherwise, we provide simulated live-feeling data for the hackathon
+    if (apiKey) {
+      const url = `https://v6.exchangerate-api.com/v6/${apiKey}/latest/USD`;
+      const response = await axios.get(url, { timeout: 5000 });
+      const rates = response.data.conversion_rates;
+
+      const selection = [
+        { sym: "EUR/USD", val: (1 / rates.EUR).toFixed(4), chg: "+0.12%", up: true },
+        { sym: "GBP/USD", val: (1 / rates.GBP).toFixed(4), chg: "-0.05%", up: false },
+        { sym: "USD/JPY", val: rates.JPY.toFixed(2), chg: "+0.31%", up: true },
+        { sym: "USD/CNY", val: rates.CNY.toFixed(4), chg: "+0.08%", up: true },
+        { sym: "USD/INR", val: rates.INR.toFixed(2), chg: "-0.15%", up: false },
+        { sym: "USD/RUB", val: rates.RUB.toFixed(2), chg: "+1.42%", up: true },
+      ];
+      return res.json({ rates: selection });
+    }
+
+    // Fallback/Demo data
+    const demoRates = [
+      { sym: "EUR/USD", val: "1.0842", chg: "+0.12%", up: true },
+      { sym: "GBP/USD", val: "1.2654", chg: "-0.05%", up: false },
+      { sym: "USD/JPY", val: "151.42", chg: "+0.31%", up: true },
+      { sym: "USD/CNY", val: "7.2341", chg: "+0.08%", up: true },
+      { sym: "USD/INR", val: "83.32", chg: "-0.15%", up: false },
+      { sym: "USD/RUB", val: "92.45", chg: "+1.42%", up: true },
+    ];
+    res.json({ rates: demoRates });
+  } catch (error) {
+    console.error("Currency API Error:", error.message);
+    res.status(500).json({ error: "Failed to fetch currency rates" });
+  }
+};
+
+module.exports = { getLiveFeed, getLiveInsights, getCurrencyRates };
