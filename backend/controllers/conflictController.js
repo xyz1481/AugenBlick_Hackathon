@@ -1,3 +1,5 @@
+const dataService = require('../services/dataService');
+
 exports.simulateConflict = async (req, res) => {
   try {
     const { attacker, target, allies = [], conflictType = 'Military War', intensity = 50 } = req.body;
@@ -17,48 +19,48 @@ exports.simulateConflict = async (req, res) => {
     const baseMultiplier = typeMultipliers[conflictType] || 1.0;
     const intensityFactor = intensity / 100; // 0.0 to 1.0
 
-    // Simulate calculated risks
-    const oil_price_risk = Math.min(0.95, (0.3 + Math.random() * 0.4) * baseMultiplier * (0.5 + intensityFactor));
-    const shipping_delay_risk = Math.min(0.95, (0.2 + Math.random() * 0.5) * baseMultiplier * (0.4 + intensityFactor));
+    // Fetch live API data 
+    const liveCommodities = await dataService.fetchCommodities(); 
+    const newsEscalation = await dataService.fetchNewsEscalation(attacker, target);
+    const dependencyMetric = await dataService.fetchDependencyMetric(attacker, target); // e.g., 0.85 for US/CN
     
-    // Determine impacted industries
-    const allIndustries = ['Energy', 'Airlines', 'Logistics', 'Agriculture', 'Technology', 'Manufacturing', 'Retail', 'Defense'];
-    const numIndustries = Math.floor(Math.random() * 3) + 2 + Math.floor(intensityFactor * 3); // 2 to 7 industries
-    
-    // Always include some key ones for Military/Naval
-    const industries_impacted = new Set();
-    if (conflictType === 'Military War' || conflictType === 'Naval Blockade') {
-      industries_impacted.add('Energy');
-      industries_impacted.add('Logistics');
-      industries_impacted.add('Defense');
-    } else if (conflictType === 'Trade War' || conflictType === 'Sanctions Conflict') {
-      industries_impacted.add('Technology');
-      industries_impacted.add('Manufacturing');
-      industries_impacted.add('Retail');
-    }
+    // The higher the news volume (tension) + base intensity, the higher the risk ceiling
+    const dynamicEscalation = (intensityFactor + (newsEscalation - 1.0)) * baseMultiplier;
 
-    // Add random others
-    while (industries_impacted.size < Math.min(numIndustries, allIndustries.length)) {
-      industries_impacted.add(allIndustries[Math.floor(Math.random() * allIndustries.length)]);
-    }
+    // Simulate calculated risks using real-world dependencies 
+    // If oil is currently very expensive globally (> $85), the risk scales even higher
+    const oilBaseRisk = liveCommodities.oil > 80 ? 0.6 : 0.3;
+    const oil_price_risk = Math.min(0.98, (oilBaseRisk + Math.random() * 0.2) * dynamicEscalation);
+    
+    // Shipping delay tied to bilateral trade dependency
+    const shipping_delay_risk = Math.min(0.98, (dependencyMetric * 0.7 + Math.random() * 0.2) * dynamicEscalation);
+    
+    // Fetch specific hyper-realistic AI industry impacts via Groq Llama 3
+    const industries_impacted = await dataService.fetchLLMIndustryImpacts(attacker, target, conflictType, intensity, liveCommodities.oil);
 
     // Generate price forecast trajectories
+    // Generate price forecast trajectories tailored to live base data
     const priceForecasts = {
-      oil: Array.from({ length: 12 }, (_, i) => 75 + (i * 2 * intensityFactor * baseMultiplier) + (Math.random() * 5 - 2.5)),
-      gas: Array.from({ length: 12 }, (_, i) => 3.5 + (i * 0.1 * intensityFactor * baseMultiplier) + (Math.random() * 0.2 - 0.1)),
-      wheat: Array.from({ length: 12 }, (_, i) => 600 + (i * 10 * intensityFactor) + (Math.random() * 20 - 10))
+      oil: Array.from({ length: 12 }, (_, i) => liveCommodities.oil + (i * 2 * dynamicEscalation) + (Math.random() * 5 - 2.5)),
+      gas: Array.from({ length: 12 }, (_, i) => 3.5 + (i * 0.1 * dynamicEscalation) + (Math.random() * 0.2 - 0.1)),
+      wheat: Array.from({ length: 12 }, (_, i) => 600 + (i * 10 * dynamicEscalation) + (Math.random() * 20 - 10))
     };
 
     res.json({
       success: true,
       simulationId: `SIM-${Date.now()}`,
       parameters: { attacker, target, allies, conflictType, intensity },
+      api_context: { 
+        live_wti_oil: liveCommodities.oil,
+        news_escalation_factor: Number(newsEscalation.toFixed(2)),
+        trade_dependency_index: dependencyMetric
+      },
       impact: {
         oil_price_risk: Number(oil_price_risk.toFixed(2)),
         shipping_delay_risk: Number(shipping_delay_risk.toFixed(2)),
-        gdp_risk: Number((0.1 + Math.random() * 0.3 * intensityFactor).toFixed(2)),
-        inflation_pressure: Number((0.2 + Math.random() * 0.4 * intensityFactor * baseMultiplier).toFixed(2)),
-        industries_impacted: Array.from(industries_impacted),
+        gdp_risk: Number((dependencyMetric * 0.5 * dynamicEscalation).toFixed(2)),
+        inflation_pressure: Number((0.2 + (liveCommodities.oil > 80 ? 0.3 : 0.1) * dynamicEscalation).toFixed(2)),
+        industries_impacted: industries_impacted,
       },
       forecasts: priceForecasts,
       timestamp: new Date()

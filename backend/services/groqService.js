@@ -19,14 +19,14 @@ const generateIntelReport = async (query, mode) => {
 
       Output Requirements:
       1. 'summary': Strictly a chain of events using '→' as the delimiter.
-      2. 'affectedSystems': List of high-level industrial or national systems.
-      3. 'supplyChainImpacts': Specific technical disruptions.
-      4. 'marketImpacts': Quantifiable or directional financial markers.
-      5. 'economicImpacts': Broad sovereign or regional fiscal consequences.
+      2. 'affectedSystems': JSON Array of strings.
+      3. 'supplyChainImpacts': JSON Array of strings.
+      4. 'marketImpacts': JSON Array of strings.
+      5. 'economicImpacts': JSON Array of strings.
       6. 'riskAssessment': Choose from [Low, Medium, High, Critical].
 
       Tone: Rigorous, objective, professional. Remove all conversational pleasantries.
-      Format: Raw JSON only.
+      Format: Raw JSON only. Ensure all fields (2-5) are strictly ARRAYS.
     `;
 
     const chatCompletion = await groq.chat.completions.create({

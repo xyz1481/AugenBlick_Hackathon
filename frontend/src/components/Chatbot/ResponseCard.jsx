@@ -62,7 +62,12 @@ const ResponseCard = ({ report }) => {
             <h3>SUPPLY CHAIN IMPACTS</h3>
           </div>
           <ul className="intel-list">
-            {report.supplyChainImpacts.map((item, i) => <li key={i}>{item}</li>)}
+            {(Array.isArray(report.supplyChainImpacts)
+              ? report.supplyChainImpacts
+              : typeof report.supplyChainImpacts === 'object'
+                ? Object.values(report.supplyChainImpacts)
+                : [report.supplyChainImpacts]
+            ).filter(Boolean).map((item, i) => <li key={i}>{item}</li>)}
           </ul>
         </section>
 
@@ -72,7 +77,12 @@ const ResponseCard = ({ report }) => {
             <h3>MARKET CONSEQUENCES</h3>
           </div>
           <ul className="intel-list">
-            {report.marketImpacts.map((item, i) => <li key={i}>{item}</li>)}
+            {(Array.isArray(report.marketImpacts)
+              ? report.marketImpacts
+              : typeof report.marketImpacts === 'object'
+                ? Object.values(report.marketImpacts)
+                : [report.marketImpacts]
+            ).filter(Boolean).map((item, i) => <li key={i}>{item}</li>)}
           </ul>
         </section>
       </div>
@@ -83,7 +93,12 @@ const ResponseCard = ({ report }) => {
           <h3>MACRO-ECONOMIC IMPLICATIONS</h3>
         </div>
         <div className="economics-grid">
-          {report.economicImpacts.map((item, i) => (
+          {(Array.isArray(report.economicImpacts)
+            ? report.economicImpacts
+            : typeof report.economicImpacts === 'object'
+              ? Object.values(report.economicImpacts)
+              : [report.economicImpacts]
+          ).filter(Boolean).map((item, i) => (
             <div key={i} className="econ-item">
               <span className="econ-bullet"></span>
               {item}
