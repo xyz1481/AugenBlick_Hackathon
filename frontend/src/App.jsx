@@ -8,6 +8,10 @@ import SupplyChains from './pages/SupplyChains';
 import Market from './pages/Market';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
+import IntelAgent from './pages/IntelAgent';
+import ConflictAnalyzer from './pages/ConflictAnalyzer';
+import CommunityPage from './pages/CommunityPage';
+
 
 const AuthGate = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -29,11 +33,16 @@ const AuthGate = ({ children }) => {
       <div className="auth-gate-overlay">
         <div className="auth-gate-content">
           <h2>Access Restricted</h2>
-          <p>You need to be logged in to access the <strong>{location.pathname.replace('/', '').replace('-', ' ')}</strong>.</p>
+          <p>
+            You need to be logged in to access the{" "}
+            <strong>{location.pathname.replace('/', '').replace('-', ' ')}</strong>.
+          </p>
+
           <div className="auth-gate-actions">
             <Link to="/login" className="btn-primary">Login Now</Link>
             <Link to="/signup" className="btn-secondary">Create Account</Link>
           </div>
+
           <Link to="/" className="back-link">Return to Home</Link>
         </div>
       </div>
@@ -47,29 +56,35 @@ function AppContent() {
   const location = useLocation();
   const isHome = location.pathname === '/';
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  const isConflict = location.pathname === '/conflict-impact';
 
   return (
     <div className="app-container">
       {!isAuthPage && <Navbar />}
+
       <main
         className="main-content"
-        style={isHome ? { padding: 0, overflow: 'hidden' } : { padding: '2rem 4rem', overflow: 'auto' }}
+        style={(isHome || isConflict)
+          ? { padding: 0, overflow: 'hidden' }
+          : { padding: '2rem 4rem', overflow: 'auto' }
+        }
       >
         <Routes>
+
           <Route path="/" element={<Home />} />
+
           <Route path="/narrative" element={<AuthGate><Narrative /></AuthGate>} />
           <Route path="/simulator" element={<AuthGate><Simulator /></AuthGate>} />
+          <Route path="/conflict-impact" element={<AuthGate><ConflictAnalyzer /></AuthGate>} />
           <Route path="/supply-chains" element={<AuthGate><SupplyChains /></AuthGate>} />
           <Route path="/market" element={<AuthGate><Market /></AuthGate>} />
+          <Route path="/intel-agent" element={<AuthGate><IntelAgent /></AuthGate>} />
+          <Route path="/community" element={<AuthGate><CommunityPage /></AuthGate>} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
+
         </Routes>
       </main>
-      {!isHome && !isAuthPage && (
-        <footer style={{ padding: '2rem', textAlign: 'center', marginTop: '2rem' }}>
-          &copy; 2026 AugenBlick Dashboard • Intelligence &amp; Reality Engine
-        </footer>
-      )}
     </div>
   );
 }
