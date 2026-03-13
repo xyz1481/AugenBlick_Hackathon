@@ -110,7 +110,7 @@ const verifyClaim = async (claim, newsSignals = []) => {
       1. If multiple credible sources support the claim → credibility HIGH
       2. If sources contradict the claim → credibility LOW
       3. If evidence is mixed or unclear → credibility MEDIUM
-      4. If no relevant signals are provided → default to credibility LOW unless internal data strongly suggests otherwise (but favor LOW).
+      4. If no relevant signals are provided → Use your internal knowledge. If the claim is a known fact, mark HIGH. If it's a known hoax or highly improbable, mark LOW. If you are uncertain or it's a very fresh claim, mark LOW but mention the lack of recent news signals in the analysisSummary.
 
       Return JSON in this format:
       {

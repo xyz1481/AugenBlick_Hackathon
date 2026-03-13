@@ -533,13 +533,13 @@ export default function ConflictGlobe() {
 
   // RENDER HELPERS
   const GLOBE_WIDTH = windowSize.width - (isSidebarOpen ? 320 : 0);
-  const GLOBE_HEIGHT = windowSize.height - NAVBAR_H - DASHBOARD_H - 120;
+  const GLOBE_HEIGHT = windowSize.height - 380;
 
   return (
     <div
       style={{
-        width: "100vw",
-        height: "100vh",
+        width: "100%",
+        height: "calc(100vh - 60px)",
         background: "#060a14",
         color: "#fff",
         display: "flex",
@@ -557,6 +557,7 @@ export default function ConflictGlobe() {
           alignItems: "center",
           padding: "0 24px",
           position: "relative",
+          zIndex: 100,
         }}
       >
         <div

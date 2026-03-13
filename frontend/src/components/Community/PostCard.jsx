@@ -6,7 +6,7 @@ const PostCard = ({ post }) => {
     <div className="post-card">
       <div className="post-header">
         <div className="post-meta-left">
-          <span className="anonymous-badge">ANONYMOUS ANALYST</span>
+          <span className="anonymous-badge">ANONYMOUS</span>
           <span className="location-badge">{post.country || 'India'}</span>
         </div>
         <span className="timestamp">{post.createdAt ? new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent'} • {post.createdAt ? new Date(post.createdAt).toLocaleDateString() : 'Today'}</span>
