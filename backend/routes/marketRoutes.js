@@ -4,6 +4,8 @@ const {
   getIndicatorData,
   getHistoricalData,
 } = require("../services/indicatorService");
+const { generateMarketAnalysis } = require("../services/groqService");
+
 
 // Define war-time critical watch categories
 const WAR_ROOM_TICKERS = {
@@ -111,4 +113,72 @@ router.get("/widgets", async (req, res) => {
   }
 });
 
+// CoinGecko proxy — avoids CORS + rate-limit on the browser
+router.get("/crypto", async (req, res) => {
+  try {
+    const axios = require("axios");
+    const { data } = await axios.get(
+      "https://api.coingecko.com/api/v3/coins/markets",
+      {
+        params: {
+          vs_currency: "usd",
+          order: "market_cap_desc",
+          per_page: 6,
+          page: 1,
+          sparkline: false,
+        },
+        timeout: 10_000,
+        headers: { Accept: "application/json" },
+      },
+    );
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    console.error("[CoinGecko proxy]", err.message);
+    // Return stale static fallback so the UI never breaks
+    res.json([
+      {
+        id: "bitcoin",
+        symbol: "btc",
+        name: "Bitcoin",
+        current_price: null,
+        price_change_percentage_24h: null,
+        market_cap: null,
+        image: "https://assets.coingecko.com/coins/images/1/small/bitcoin.png",
+      },
+      {
+        id: "ethereum",
+        symbol: "eth",
+        name: "Ethereum",
+        current_price: null,
+        price_change_percentage_24h: null,
+        market_cap: null,
+        image:
+          "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
+      },
+      {
+        id: "solana",
+        symbol: "sol",
+        name: "Solana",
+        current_price: null,
+        price_change_percentage_24h: null,
+        market_cap: null,
+        image:
+          "https://assets.coingecko.com/coins/images/4128/small/solana.png",
+      },
+    ]);
+  }
+});
+
+router.post("/analysis", async (req, res) => {
+  const { marketData } = req.body;
+  try {
+    const analysis = await generateMarketAnalysis(marketData);
+    res.json(analysis);
+  } catch (error) {
+    console.error("[Market Analysis Route]", error.message);
+    res.status(500).json({ error: "Analysis engine failed" });
+  }
+});
+
 module.exports = router;
+

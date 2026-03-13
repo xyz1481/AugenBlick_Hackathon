@@ -36,8 +36,10 @@ import {
   HelpCircle,
   Menu,
   X,
+  Database,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "../context/ThemeContext";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import HISTORICAL_DATA from "../data/historicalConflicts.json";
 import TRADE_DATA from "../data/trade.json";
@@ -46,12 +48,18 @@ import API_BASE_URL from "../api/config";
 import { AiInsightsCard } from "./AiInsightsCard";
 import WidgetPanel from "./WidgetPanel";
 import GlobalStabilityPanel from "./GlobalStabilityPanel";
+import MarketAnalysisPanel from "./MarketAnalysisPanel";
+
 
 // --- DATA DEFINITIONS ---
 
 const MODES = {
   CONFLICT: { label: "WORLD", icon: <Shield size={14} />, color: "#e74c3c" },
-  FINANCE: { label: "FINANCE", icon: <TrendingUp size={14} />, color: "#2ecc71" },
+  FINANCE: {
+    label: "FINANCE",
+    icon: <TrendingUp size={14} />,
+    color: "#2ecc71",
+  },
   SUPPLY_CHAIN: {
     label: "SUPPLY CHAIN",
     icon: <Box size={14} />,
@@ -60,92 +68,306 @@ const MODES = {
 };
 
 const COUNTRY_COORDS = {
-  "Russia": [61.5, 105.3],
-  "China": [35.8, 104.1],
-  "India": [20.5, 78.9],
-  "USA": [37.0, -95.7],
+  Russia: [61.5, 105.3],
+  China: [35.8, 104.1],
+  India: [20.5, 78.9],
+  USA: [37.0, -95.7],
   "Saudi Arabia": [23.8, 45.0],
-  "Australia": [-25.2, 133.7],
-  "Brazil": [-14.2, -51.9],
-  "Canada": [56.1, -106.3],
-  "Norway": [60.4, 8.4],
+  Australia: [-25.2, 133.7],
+  Brazil: [-14.2, -51.9],
+  Canada: [56.1, -106.3],
+  Norway: [60.4, 8.4],
   "European Union": [50.0, 10.0],
-  "Qatar": [25.3, 51.1],
-  "Japan": [36.2, 138.2],
+  Qatar: [25.3, 51.1],
+  Japan: [36.2, 138.2],
   "South Korea": [35.9, 127.7],
-  "Indonesia": [-0.7, 113.9],
-  "Malaysia": [4.2, 101.9],
-  "Vietnam": [14.0, 108.2],
-  "Germany": [51.1, 10.4],
-  "Taiwan": [23.6, 120.9],
+  Indonesia: [-0.7, 113.9],
+  Malaysia: [4.2, 101.9],
+  Vietnam: [14.0, 108.2],
+  Germany: [51.1, 10.4],
+  Taiwan: [23.6, 120.9],
   "United Arab Emirates": [23.4, 53.8],
-  "Nigeria": [9.0, 8.6],
-  "Angola": [-11.2, 17.8],
-  "Chile": [-35.6, -71.5],
-  "Peru": [-9.1, -75.0],
-  "Kazakhstan": [48.0, 66.9],
-  "Turkmenistan": [38.9, 59.5],
-  "Mongolia": [46.8, 103.8],
-  "Mexico": [23.6, -102.5],
-  "France": [46.2, 2.2],
-  "Italy": [41.8, 12.5],
-  "Netherlands": [52.1, 5.2],
-  "Belgium": [50.5, 4.4],
-  "Poland": [51.9, 19.1],
-  "Spain": [40.4, -3.7],
-  "Turkey": [38.9, 35.2],
-  "Egypt": [26.8, 30.8],
+  Nigeria: [9.0, 8.6],
+  Angola: [-11.2, 17.8],
+  Chile: [-35.6, -71.5],
+  Peru: [-9.1, -75.0],
+  Kazakhstan: [48.0, 66.9],
+  Turkmenistan: [38.9, 59.5],
+  Mongolia: [46.8, 103.8],
+  Mexico: [23.6, -102.5],
+  France: [46.2, 2.2],
+  Italy: [41.8, 12.5],
+  Netherlands: [52.1, 5.2],
+  Belgium: [50.5, 4.4],
+  Poland: [51.9, 19.1],
+  Spain: [40.4, -3.7],
+  Turkey: [38.9, 35.2],
+  Egypt: [26.8, 30.8],
   "South Africa": [-30.5, 22.9],
-  "United Kingdom": [55.3, -3.4]
+  "United Kingdom": [55.3, -3.4],
 };
 
 const LAYER_GROUPS = {
   CONFLICT: [
-    { id: "Iran Attacks", label: "IRAN ATTACKS", icon: <Zap size={12} />, active: false },
-    { id: "Intel Hotspots", label: "INTEL HOTSPOTS", icon: <Eye size={12} />, active: false },
-    { id: "Conflict Zones", label: "CONFLICT ZONES", icon: <AlertTriangle size={12} />, active: false },
-    { id: "Military Bases", label: "MILITARY BASES", icon: <Shield size={12} />, active: false },
-    { id: "Nuclear Sites", label: "NUCLEAR SITES", icon: <Activity size={12} />, active: false },
-    { id: "Gamma Irradiators", label: "GAMMA IRRADIATORS", icon: <Wind size={12} />, active: false },
-    { id: "Spaceports", label: "SPACEPORTS", icon: <Zap size={12} />, active: false },
-    { id: "Undersea Cables", label: "UNDERSEA CABLES", icon: <Zap size={12} />, active: false },
-    { id: "Pipelines", label: "PIPELINES", icon: <Fuel size={12} />, active: false },
-    { id: "AI Data Centers", label: "AI DATA CENTERS", icon: <Cpu size={12} />, active: false },
-    { id: "Military Activity", label: "MILITARY ACTIVITY", icon: <Plane size={12} />, active: false },
-    { id: "Ship Traffic", label: "SHIP TRAFFIC", icon: <Anchor size={12} />, active: false },
-    { id: "Trade Routes", label: "TRADE ROUTES", icon: <Ship size={12} />, active: false },
-    { id: "Aviation", label: "AVIATION", icon: <Plane size={12} />, active: false },
-    { id: "Protests", label: "PROTESTS", icon: <Radio size={12} />, active: false },
-    { id: "Armed Conflict Events", label: "ARMED CONFLICT", icon: <Shield size={12} />, active: false },
-    { id: "Displacement Flows", label: "DISPLACEMENT", icon: <Activity size={12} />, active: false },
-    { id: "Climate Anomalies", label: "CLIMATE ANOMALY", icon: <Thermometer size={12} />, active: false },
-    { id: "Weather Alerts", label: "WEATHER ALERTS", icon: <Wind size={12} />, active: false },
-    { id: "Internet Outages", label: "INTERNET OUTAGES", icon: <Radio size={12} />, active: false },
-    { id: "Cyber Threats", label: "CYBER THREATS", icon: <Zap size={12} />, active: false },
-    { id: "Natural Events", label: "NATURAL EVENTS", icon: <Activity size={12} />, active: false },
+    {
+      id: "Hazard Map",
+      label: "HAZARD MAP (R/Y/B)",
+      icon: <Activity size={12} />,
+      active: true,
+    },
+    {
+      id: "Iran Attacks",
+      label: "IRAN ATTACKS",
+      icon: <Zap size={12} />,
+      active: false,
+    },
+    {
+      id: "Intel Hotspots",
+      label: "INTEL HOTSPOTS",
+      icon: <Eye size={12} />,
+      active: false,
+    },
+    {
+      id: "Conflict Zones",
+      label: "CONFLICT ZONES",
+      icon: <AlertTriangle size={12} />,
+      active: false,
+    },
+    {
+      id: "Military Bases",
+      label: "MILITARY BASES",
+      icon: <Shield size={12} />,
+      active: false,
+    },
+    {
+      id: "Nuclear Sites",
+      label: "NUCLEAR SITES",
+      icon: <Activity size={12} />,
+      active: false,
+    },
+    {
+      id: "Gamma Irradiators",
+      label: "GAMMA IRRADIATORS",
+      icon: <Wind size={12} />,
+      active: false,
+    },
+    {
+      id: "Spaceports",
+      label: "SPACEPORTS",
+      icon: <Zap size={12} />,
+      active: false,
+    },
+    {
+      id: "Undersea Cables",
+      label: "UNDERSEA CABLES",
+      icon: <Zap size={12} />,
+      active: false,
+    },
+    {
+      id: "Pipelines",
+      label: "PIPELINES",
+      icon: <Fuel size={12} />,
+      active: false,
+    },
+    {
+      id: "AI Data Centers",
+      label: "AI DATA CENTERS",
+      icon: <Cpu size={12} />,
+      active: false,
+    },
+    {
+      id: "Military Activity",
+      label: "MILITARY ACTIVITY",
+      icon: <Plane size={12} />,
+      active: false,
+    },
+    {
+      id: "Ship Traffic",
+      label: "SHIP TRAFFIC",
+      icon: <Anchor size={12} />,
+      active: false,
+    },
+    {
+      id: "Trade Routes",
+      label: "TRADE ROUTES",
+      icon: <Ship size={12} />,
+      active: false,
+    },
+    {
+      id: "Aviation",
+      label: "AVIATION",
+      icon: <Plane size={12} />,
+      active: false,
+    },
+    {
+      id: "Protests",
+      label: "PROTESTS",
+      icon: <Radio size={12} />,
+      active: false,
+    },
+    {
+      id: "Armed Conflict Events",
+      label: "ARMED CONFLICT",
+      icon: <Shield size={12} />,
+      active: false,
+    },
+    {
+      id: "Historical Events",
+      label: "HISTORY (YEAR)",
+      icon: <Database size={12} />,
+      active: true,
+    },
+    {
+      id: "Displacement Flows",
+      label: "DISPLACEMENT",
+      icon: <Activity size={12} />,
+      active: false,
+    },
+    {
+      id: "Climate Anomalies",
+      label: "CLIMATE ANOMALY",
+      icon: <Thermometer size={12} />,
+      active: false,
+    },
+    {
+      id: "Weather Alerts",
+      label: "WEATHER ALERTS",
+      icon: <Wind size={12} />,
+      active: false,
+    },
+    {
+      id: "Internet Outages",
+      label: "INTERNET OUTAGES",
+      icon: <Radio size={12} />,
+      active: false,
+    },
+    {
+      id: "Cyber Threats",
+      label: "CYBER THREATS",
+      icon: <Zap size={12} />,
+      active: false,
+    },
+    {
+      id: "Natural Events",
+      label: "NATURAL EVENTS",
+      icon: <Activity size={12} />,
+      active: false,
+    },
     { id: "Fires", label: "FIRES", icon: <Zap size={12} />, active: false },
-    { id: "Strategic Waterways", label: "WATERWAYS", icon: <Anchor size={12} />, active: false },
-    { id: "Economic Centers", label: "ECON CENTERS", icon: <Activity size={12} />, active: false },
-    { id: "Critical Minerals", label: "CRITICAL MINS", icon: <Cpu size={12} />, active: false },
-    { id: "GPS JAMMING", label: "GPS JAMMING", icon: <Radio size={12} />, active: false },
-    { id: "Orbital Surveillance", label: "ORBITAL SURV", icon: <Eye size={12} />, active: false }
+    {
+      id: "Strategic Waterways",
+      label: "WATERWAYS",
+      icon: <Anchor size={12} />,
+      active: false,
+    },
+    {
+      id: "Economic Centers",
+      label: "ECON CENTERS",
+      icon: <Activity size={12} />,
+      active: false,
+    },
+    {
+      id: "Critical Minerals",
+      label: "CRITICAL MINS",
+      icon: <Cpu size={12} />,
+      active: false,
+    },
+    {
+      id: "GPS JAMMING",
+      label: "GPS JAMMING",
+      icon: <Radio size={12} />,
+      active: false,
+    },
+    {
+      id: "Orbital Surveillance",
+      label: "ORBITAL SURV",
+      icon: <Eye size={12} />,
+      active: false,
+    },
   ],
   FINANCE: [
-    { id: "stock_exchange", label: "STOCK EXCHANGES", icon: <TrendingUp size={12} />, active: false },
-    { id: "central_bank", label: "CENTRAL BANKS", icon: <CreditCard size={12} />, active: false },
-    { id: "cyber_threats", label: "CYBER THREATS", icon: <Zap size={12} />, active: false },
-    { id: "economic_centers", label: "ECONOMIC CENTERS", icon: <Activity size={12} />, active: false }
+    {
+      id: "stock_exchange",
+      label: "STOCK EXCHANGES",
+      icon: <TrendingUp size={12} />,
+      active: false,
+    },
+    {
+      id: "central_bank",
+      label: "CENTRAL BANKS",
+      icon: <CreditCard size={12} />,
+      active: false,
+    },
+    {
+      id: "cyber_threats",
+      label: "CYBER THREATS",
+      icon: <Zap size={12} />,
+      active: false,
+    },
+    {
+      id: "economic_centers",
+      label: "ECONOMIC CENTERS",
+      icon: <Activity size={12} />,
+      active: false,
+    },
   ],
   SUPPLY_CHAIN: [
-    { id: "Ship Traffic", label: "MARITIME VESSELS", icon: <Anchor size={12} />, active: false },
-    { id: "Trade Routes", label: "SHIPPING LANES", icon: <Ship size={12} />, active: false },
-    { id: "Pipelines", label: "ENERGY PIPELINES", icon: <Fuel size={12} />, active: false },
-    { id: "Aviation", label: "AIR CARGO ROUTES", icon: <Plane size={12} />, active: false },
-    { id: "Strategic Waterways", label: "CHOKEPOINTS", icon: <Layers size={12} />, active: false }
-  ]
+    {
+      id: "Ship Traffic",
+      label: "MARITIME VESSELS",
+      icon: <Anchor size={12} />,
+      active: false,
+    },
+    {
+      id: "Trade Routes",
+      label: "SHIPPING LANES",
+      icon: <Ship size={12} />,
+      active: false,
+    },
+    {
+      id: "Pipelines",
+      label: "ENERGY PIPELINES",
+      icon: <Fuel size={12} />,
+      active: false,
+    },
+    {
+      id: "Aviation",
+      label: "AIR CARGO ROUTES",
+      icon: <Plane size={12} />,
+      active: false,
+    },
+    {
+      id: "Strategic Waterways",
+      label: "CHOKEPOINTS",
+      icon: <Layers size={12} />,
+      active: false,
+    },
+  ],
 };
 
 // --- MARKER DATA (Synthesized for high fidelity) ---
+
+const CONFLICT_HAZARDS = {
+  // RED: CRITICAL / ACTIVE HIGH-INTENSITY CONFLICT
+  'Russia': 'RED', 'Ukraine': 'RED', 'Israel': 'RED', 'Iran': 'RED', 'Sudan': 'RED', 
+  'Syria': 'RED', 'Yemen': 'RED', 'Myanmar': 'RED', 'Afghanistan': 'RED', 'Palestine': 'RED',
+  'Libya': 'RED', 'Mali': 'RED', 'Somalia': 'RED', 'Democratic Republic of the Congo': 'RED',
+  
+  // YELLOW: ELEVATED RISK / RISING TENSIONS / HYBRIDS / CIVIL UNREST
+  'China': 'YELLOW', 'Taiwan': 'YELLOW', 'Turkey': 'YELLOW', 'Egypt': 'YELLOW', 
+  'Lebanon': 'YELLOW', 'Iraq': 'YELLOW', 'North Korea': 'YELLOW', 'Pakistan': 'YELLOW',
+  'Azerbaijan': 'YELLOW', 'Armenia': 'YELLOW', 'Venezuela': 'YELLOW', 'Colombia': 'YELLOW',
+  'Ethiopia': 'YELLOW', 'Nigeria': 'YELLOW', 'Niger': 'YELLOW', 'Burkina Faso': 'YELLOW',
+  'Serbia': 'YELLOW', 'Kosovo': 'YELLOW', 'Belarus': 'YELLOW',
+  
+  // BLUE: STRATEGICALLY INVOLVED / STABLE ALLIES / LOGISTICAL HUBS / DEFENSE PACTS
+  'USA': 'BLUE', 'India': 'BLUE', 'Germany': 'BLUE', 'Poland': 'BLUE', 'France': 'BLUE', 
+  'United Kingdom': 'BLUE', 'Saudi Arabia': 'BLUE', 'United Arab Emirates': 'BLUE', 
+  'Qatar': 'BLUE', 'Kuwait': 'BLUE', 'Jordan': 'BLUE', 'Oman': 'BLUE', 'Bahrain': 'BLUE',
+  'Japan': 'BLUE', 'South Korea': 'BLUE', 'Australia': 'BLUE', 'Norway': 'BLUE', 
+  'Canada': 'BLUE', 'Netherlands': 'BLUE', 'Spain': 'BLUE', 'Italy': 'BLUE', 
+  'Finland': 'BLUE', 'Sweden': 'BLUE', 'Philippines': 'BLUE', 'Vietnam': 'BLUE'
+};
 
 const CONFLICT_ZONES_POLY = [
   { country: "Russia", coords: [61.5, 105.3], level: "CRITICAL" },
@@ -284,6 +506,7 @@ const EVENT_TYPES = {
 export default function ConflictGlobe() {
   const globeRef = useRef();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   // -- UI STATE --
   const [viewMode, setViewMode] = useState("CONFLICT");
@@ -293,8 +516,11 @@ export default function ConflictGlobe() {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("Global");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+  const [isIntelligenceOpen, setIsIntelligenceOpen] = useState(true);
+  const [isLayersOpen, setIsLayersOpen] = useState(false);
+  const [isStabilityOpen, setIsStabilityOpen] = useState(true);
+  const [hoveredCountry, setHoveredCountry] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(2026);
 
   // -- DATA STATE --
   const [countries, setCountries] = useState({ features: [] });
@@ -306,6 +532,9 @@ export default function ConflictGlobe() {
   });
   const [gti, setGti] = useState(71.4);
   const [hoveredMarker, setHoveredMarker] = useState(null);
+  const [marketAnalysisData, setMarketAnalysisData] = useState(null);
+  const [liveEvents, setLiveEvents] = useState([]);
+
 
   // Constants
   const NAVBAR_H = 58;
@@ -356,16 +585,49 @@ export default function ConflictGlobe() {
     }
   }, []);
 
+  const fetchMarketData = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/market/widgets`);
+      if (!res.ok) throw new Error("Market fetch failed");
+      const data = await res.json();
+      setMarketAnalysisData(data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const fetchLiveEvents = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/event/live`);
+      if (!res.ok) throw new Error("Live events fetch failed");
+      const data = await res.json();
+      if (data.success) {
+        setLiveEvents(data.events || []);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   useEffect(() => {
     fetchLiveFeed();
     fetchTracking();
+    fetchMarketData();
+    fetchLiveEvents();
+
     const feedInterval = setInterval(fetchLiveFeed, 300000);
-    const trackInterval = setInterval(fetchTracking, 10000);
+    const trackInterval = setInterval(fetchTracking, 30000);
+    const eventInterval = setInterval(fetchLiveEvents, 300000);
+    const marketInterval = setInterval(fetchMarketData, 60000);
+
     return () => {
       clearInterval(feedInterval);
       clearInterval(trackInterval);
+      clearInterval(eventInterval);
+      clearInterval(marketInterval);
     };
-  }, [fetchLiveFeed, fetchTracking]);
+  }, [fetchLiveFeed, fetchTracking, fetchMarketData, fetchLiveEvents]);
+
 
   useEffect(() => {
     fetch(
@@ -393,7 +655,7 @@ export default function ConflictGlobe() {
     MALACCA: [1.3, 103.0],
     HORMUZ: [26.5, 56.3],
     CAPE: [-34.3, 18.5],
-    GIBSON: [35.9, -5.6]
+    GIBSON: [35.9, -5.6],
   };
 
   const getShippingPath = useCallback((route) => {
@@ -404,11 +666,14 @@ export default function ConflictGlobe() {
     let path = [s];
 
     // Simple heuristic-based waypoint insertion for 'proper' paths
-    if (route.corridor.includes('Suez')) path.push(WAYPOINTS.SUEZ);
-    if (route.corridor.includes('Hormuz')) path.push(WAYPOINTS.HORMUZ);
-    if (route.corridor.includes('Malacca')) path.push(WAYPOINTS.MALACCA);
-    if (route.corridor.includes('Panama')) path.push(WAYPOINTS.PANAMA);
-    if (route.corridor.includes('Arctic') || route.corridor.includes('Atlantic')) {
+    if (route.corridor.includes("Suez")) path.push(WAYPOINTS.SUEZ);
+    if (route.corridor.includes("Hormuz")) path.push(WAYPOINTS.HORMUZ);
+    if (route.corridor.includes("Malacca")) path.push(WAYPOINTS.MALACCA);
+    if (route.corridor.includes("Panama")) path.push(WAYPOINTS.PANAMA);
+    if (
+      route.corridor.includes("Arctic") ||
+      route.corridor.includes("Atlantic")
+    ) {
       // Add middle-of-ocean safety points
       if (s[1] > 0 && t[1] < -50) path.push([40, -40]);
     }
@@ -418,34 +683,39 @@ export default function ConflictGlobe() {
   }, []);
 
   const supplyChainData = useMemo(() => {
-    if (viewMode !== 'SUPPLY_CHAIN') return { arcs: [], paths: [] };
+    if (viewMode !== "SUPPLY_CHAIN") return { arcs: [], paths: [] };
 
     const arcs = [];
     const paths = [];
 
-    TRADE_DATA.forEach(t => {
+    TRADE_DATA.forEach((t) => {
       const sCoords = COUNTRY_COORDS[t.source];
       const tCoords = COUNTRY_COORDS[t.target];
       if (!sCoords || !tCoords) return;
 
-      if (activeLayers.has('Aviation') && t.goods.some(g => g.includes('Electronics') || g.includes('Aircraft'))) {
+      if (
+        activeLayers.has("Aviation") &&
+        t.goods.some((g) => g.includes("Electronics") || g.includes("Aircraft"))
+      ) {
         arcs.push({
-          startLat: sCoords[0], startLng: sCoords[1],
-          endLat: tCoords[0], endLng: tCoords[1],
-          color: ['#f1c40f22', '#f1c40fcc', '#f1c40f22'],
+          startLat: sCoords[0],
+          startLng: sCoords[1],
+          endLat: tCoords[0],
+          endLng: tCoords[1],
+          color: ["#f1c40f22", "#f1c40fcc", "#f1c40f22"],
           data: t,
-          type: 'Aviation'
+          type: "Aviation",
         });
       }
 
-      if (activeLayers.has('Trade Routes')) {
+      if (activeLayers.has("Trade Routes")) {
         const sPath = getShippingPath(t);
         if (sPath) {
           paths.push({
             path: sPath,
-            color: '#1abc9c',
+            color: "#1abc9c",
             data: t,
-            type: 'Maritime'
+            type: "Maritime",
           });
         }
       }
@@ -478,11 +748,13 @@ export default function ConflictGlobe() {
     let baseMarkers = [];
 
     // 1. Master Intel Data (Plotting globalIntel.json)
-    const intelMarkers = GLOBAL_INTEL.filter(item => activeLayers.has(item.category)).map(item => ({
+    const intelMarkers = GLOBAL_INTEL.filter((item) =>
+      activeLayers.has(item.category),
+    ).map((item) => ({
       ...item,
       label: item.title,
       text: item.news,
-      type: item.type
+      type: item.type,
     }));
     baseMarkers = [...intelMarkers];
 
@@ -496,6 +768,30 @@ export default function ConflictGlobe() {
         type: n.type || "military",
       }));
       baseMarkers = [...baseMarkers, ...newsMarkers];
+
+      // GDELT Global Live Events API
+      if (activeLayers.has("Armed Conflict Events")) {
+        const eventMarkers = liveEvents.map((e) => ({
+          lat: e.lat,
+          lng: e.lng,
+          label: e.title || "Geopolitical Event",
+          text: `[LIVE-SIGNAL] ${e.summary}`,
+          type: "military",
+        }));
+        baseMarkers = [...baseMarkers, ...eventMarkers];
+      }
+
+      // Historical Data Injection
+      if (activeLayers.has("Historical Events")) {
+        const historicalMarkers = HISTORICAL_DATA.filter((h) => h.year === selectedYear)
+          .map((h) => ({
+            ...h,
+            label: h.title,
+            text: `[H-RECORD] ${h.title}: ${h.news}`,
+            type: h.type || "military",
+          }));
+        baseMarkers = [...baseMarkers, ...historicalMarkers];
+      }
     } else if (viewMode === "FINANCE") {
       const financeMarkers = FINANCE_POINTS.filter(
         (p) => activeLayers.has(p.type + "s") || activeLayers.has(p.type),
@@ -504,36 +800,48 @@ export default function ConflictGlobe() {
     }
 
     // 3. Live Universal Telemetry (Flights & Vessels)
-    if (activeLayers.has("Aviation") || activeLayers.has("Military Activity") || activeLayers.has("AIR CARGO ROUTES") || activeLayers.has("AVIATION")) {
-      trackingData.flights.forEach(f => {
+    if (
+      activeLayers.has("Aviation") ||
+      activeLayers.has("Military Activity") ||
+      activeLayers.has("AIR CARGO ROUTES") ||
+      activeLayers.has("AVIATION")
+    ) {
+      trackingData.flights.forEach((f) => {
         baseMarkers.push({
           ...f,
           label: f.callsign,
-          text: `${f.airline || 'Flight'} | Alt: ${f.alt}ft | Speed: ${f.speed}${f.isAPI ? 'kt (Live)' : 'kt'}`,
-          type: f.isMilitary ? 'military' : 'political',
-          iconType: 'plane'
+          text: `${f.airline || "Flight"} | Alt: ${f.alt}ft | Speed: ${f.speed}${f.isAPI ? "kt (Live)" : "kt"}`,
+          type: f.isMilitary ? "military" : "political",
+          iconType: "plane",
         });
       });
     }
 
-    if (activeLayers.has("Trade Routes") || activeLayers.has("MARITIME VESSELS") || activeLayers.has("Ship Traffic")) {
-      trackingData.vessels.forEach(v => {
+    if (
+      activeLayers.has("Trade Routes") ||
+      activeLayers.has("MARITIME VESSELS") ||
+      activeLayers.has("Ship Traffic")
+    ) {
+      trackingData.vessels.forEach((v) => {
         baseMarkers.push({
           ...v,
           label: v.name,
           text: `Status: ${v.status} | Speed: ${v.speed}kn | Chokepoint: ${v.chokepoint}`,
-          type: 'strategic_waterway',
-          iconType: 'ship'
+          type: "strategic_waterway",
+          iconType: "ship",
         });
       });
     }
 
     return baseMarkers;
-  }, [viewMode, newsFeed, activeLayers, trackingData]);
+  }, [viewMode, newsFeed, activeLayers, trackingData, selectedYear, liveEvents]);
 
   // RENDER HELPERS
-  const GLOBE_WIDTH = windowSize.width - (isSidebarOpen ? 320 : 0);
-  const GLOBE_HEIGHT = windowSize.height - 380;
+  const GLOBE_WIDTH =
+    windowSize.width -
+    (isIntelligenceOpen ? 340 : 0) -
+    (isStabilityOpen ? 420 : 0);
+  const GLOBE_HEIGHT = windowSize.height - NAVBAR_H - DASHBOARD_H - 120;
 
   return (
     <div
@@ -599,7 +907,7 @@ export default function ConflictGlobe() {
                     transition: "all 0.2s",
                   }}
                 >
-                  {cfg.icon} {cfg.label}
+                  {cfg.label}
                 </button>
               ))}
             </div>
@@ -623,9 +931,6 @@ export default function ConflictGlobe() {
                   LIVE
                 </span>
               </div>
-
-
-
             </div>
           </div>
 
@@ -641,17 +946,68 @@ export default function ConflictGlobe() {
           >
             <div
               style={{
-                fontSize: "11px",
+                fontSize: "10px",
                 color: "#5a7a9a",
                 fontWeight: "800",
-                letterSpacing: "1.5px",
+                letterSpacing: "1px",
                 background: "rgba(255,255,255,0.03)",
-                padding: "6px 16px",
+                padding: "6px 12px",
                 borderRadius: "20px",
                 border: "1px solid rgba(255,255,255,0.05)",
+                whiteSpace: "nowrap",
+                minWidth: "max-content",
+                marginLeft: "40px",
               }}
             >
-              {new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).toUpperCase()} IST
+              {new Date()
+                .toLocaleString("en-IN", {
+                  timeZone: "Asia/Kolkata",
+                  weekday: "short",
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                  hour12: false,
+                })
+                .toUpperCase()}{" "}
+              IST
+            </div>
+
+            {/* Year Selector UI */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              background: "rgba(13,21,39,0.8)",
+              padding: "4px 12px",
+              borderRadius: "12px",
+              border: "1px solid #1e2d4a",
+              boxShadow: "0 0 15px rgba(46,204,113,0.1)"
+            }}>
+              <span style={{ fontSize: "9px", color: "#5a7a9a", fontWeight: "900", letterSpacing: "1px" }}>EPOCH:</span>
+              <div style={{ display: "flex", gap: "2px" }}>
+                {[2020, 2021, 2022, 2023, 2024, 2025, 2026].map(year => (
+                  <button
+                    key={year}
+                    onClick={() => setSelectedYear(year)}
+                    style={{
+                      background: selectedYear === year ? "#2ecc71" : "transparent",
+                      color: selectedYear === year ? "#000" : "#5a7a9a",
+                      border: "none",
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      fontSize: "10px",
+                      fontWeight: "900",
+                      cursor: "pointer",
+                      transition: "all 0.2s"
+                    }}
+                  >
+                    {year}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div
@@ -747,6 +1103,31 @@ export default function ConflictGlobe() {
                 }
               }}
             />
+            <button
+              onClick={() => setIsStabilityOpen(!isStabilityOpen)}
+              style={{
+                background: isStabilityOpen
+                  ? "rgba(46,204,113,0.2)"
+                  : "rgba(255,255,255,0.05)",
+                border: `1px solid ${isStabilityOpen ? "#2ecc71" : "#1e2d4a"}`,
+                borderRadius: "8px",
+                padding: "8px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              <LayoutGrid
+                size={16}
+                color={isStabilityOpen ? "#2ecc71" : "#fff"}
+              />
+              <span
+                style={{ fontSize: "10px", fontWeight: "900", color: "#fff" }}
+              >
+                STABILITY
+              </span>
+            </button>
           </div>
         </div>
       </div>
@@ -763,8 +1144,8 @@ export default function ConflictGlobe() {
         {/* LEFT AI INSIGHTS SIDEBAR */}
         <motion.div
           animate={{
-            x: isSidebarOpen ? 0 : -340,
-            width: isSidebarOpen ? 340 : 0,
+            x: isIntelligenceOpen ? 0 : -340,
+            width: isIntelligenceOpen ? 340 : 0,
           }}
           style={{
             background: "rgba(6,11,24,0.92)",
@@ -776,7 +1157,7 @@ export default function ConflictGlobe() {
             overflow: "hidden",
             position: "relative",
             flexShrink: 0,
-            boxShadow: "10px 0 30px rgba(0,0,0,0.5)"
+            boxShadow: "10px 0 30px rgba(0,0,0,0.5)",
           }}
         >
           <div
@@ -787,10 +1168,10 @@ export default function ConflictGlobe() {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              background: "rgba(255,255,255,0.02)"
+              background: "rgba(255,255,255,0.02)",
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <GlobeIcon size={16} color="#2ecc71" />
               <h3
                 style={{
@@ -805,7 +1186,7 @@ export default function ConflictGlobe() {
               </h3>
             </div>
             <button
-              onClick={() => setIsSidebarOpen(false)}
+              onClick={() => setIsIntelligenceOpen(false)}
               style={{
                 background: "rgba(255,255,255,0.05)",
                 border: "none",
@@ -834,7 +1215,7 @@ export default function ConflictGlobe() {
               padding: "16px 20px",
               borderTop: "1px solid #1e2d4a",
               width: "340px",
-              background: "rgba(0,0,0,0.3)"
+              background: "rgba(0,0,0,0.3)",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -844,7 +1225,7 @@ export default function ConflictGlobe() {
                   height: "8px",
                   borderRadius: "50%",
                   background: "#2ecc71",
-                  boxShadow: "0 0 8px #2ecc71"
+                  boxShadow: "0 0 8px #2ecc71",
                 }}
               />
               <span
@@ -856,9 +1237,9 @@ export default function ConflictGlobe() {
           </div>
         </motion.div>
 
-        {!isSidebarOpen && (
+        {!isIntelligenceOpen && (
           <button
-            onClick={() => setIsSidebarOpen(true)}
+            onClick={() => setIsIntelligenceOpen(true)}
             style={{
               position: "absolute",
               top: "20px",
@@ -885,10 +1266,11 @@ export default function ConflictGlobe() {
             justifyContent: "center",
             alignItems: "center",
             overflow: "hidden",
+            zIndex: 1,
           }}
         >
-          {/* High-level stability & impact dashboard overlay */}
-          <GlobalStabilityPanel />
+          {/* High-level stability & impact dashboard integrated in right sidebar */}
+
           <AnimatePresence mode="wait">
             {projection === "3d" ? (
               <motion.div
@@ -908,22 +1290,41 @@ export default function ConflictGlobe() {
                   ref={globeRef}
                   width={GLOBE_WIDTH}
                   height={GLOBE_HEIGHT}
-                  backgroundColor="#060a1400"
-                  atmosphereColor="#1a4a8a"
+                  backgroundColor="rgba(0,0,0,0)"
+                  atmosphereColor={theme === "dark" ? "#1a4a8a" : "#3a7bd5"}
                   atmosphereAltitude={0.15}
-                  globeImageUrl="https://unpkg.com/three-globe@2.30.0/example/img/earth-night.jpg"
+                  globeImageUrl={
+                    theme === "dark"
+                      ? "https://unpkg.com/three-globe@2.30.0/example/img/earth-night.jpg"
+                      : "https://unpkg.com/three-globe@2.30.0/example/img/earth-blue-marble.jpg"
+                  }
                   bumpImageUrl="https://unpkg.com/three-globe@2.30.0/example/img/earth-topology.png"
                   // --- POLYGONS (Heatmap/Conflict Zones) ---
                   polygonsData={countries.features}
+                  onPolygonHover={setHoveredCountry}
                   polygonCapColor={(d) => {
                     const name = d.properties.ADMIN || d.properties.NAME;
+                    const isHovered = d === hoveredCountry;
+
+                    // Priority 0: Hover Highlight
+                    if (isHovered) return 'rgba(255, 255, 255, 0.15)';
+                    
+                    // Priority 1: Hazard Map Filter (Red/Yellow/Blue severity)
+                    if (activeLayers.has("Hazard Map") && viewMode === "CONFLICT") {
+                      const hazard = CONFLICT_HAZARDS[name];
+                      if (hazard === 'RED') return 'rgba(231, 76, 60, 0.6)';    // Red
+                      if (hazard === 'YELLOW') return 'rgba(241, 196, 15, 0.5)'; // Yellow
+                      if (hazard === 'BLUE') return 'rgba(52, 152, 219, 0.4)';   // Blue
+                    }
+
+                    // Priority 2: Original Conflict Zones (Pulsing Red)
                     const conflict = CONFLICT_ZONES_POLY.find(
                       (c) => c.country === name,
                     );
                     if (
                       viewMode === "CONFLICT" &&
                       conflict &&
-                      activeLayers.has("conflict_zones")
+                      activeLayers.has("Conflict Zones")
                     ) {
                       return conflict.level === "CRITICAL"
                         ? "rgba(231,76,60,0.4)"
@@ -931,37 +1332,84 @@ export default function ConflictGlobe() {
                     }
                     return "rgba(255,255,255,0.03)";
                   }}
-                  polygonSideColor={() => "rgba(0,0,0,0.1)"}
-                  polygonStrokeColor={() => "rgba(255,255,255,0.08)"}
+                  polygonSideColor={() => "rgba(255,255,255,0.05)"}
+                  polygonStrokeColor={(d) => d === hoveredCountry ? "#2ecc71" : "rgba(255,255,255,0.08)"}
                   polygonAltitude={0.01}
+                  polygonsTransitionDuration={0}
                   // --- HTML MARKERS (Tactical Symbology) ---
                   htmlElementsData={markers}
                   htmlElement={(d) => {
-                    const el = document.createElement('div');
+                    const el = document.createElement("div");
+                    el.style.pointerEvents = 'auto';
                     const color = EVENT_TYPES[d.type]?.color || "#fff";
 
                     // Choose icon based on iconType
-                    let iconSVG = '';
-                    if (d.iconType === 'plane') {
-                      iconSVG = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="${color}" stroke-width="3" fill="none" style="transform: rotate(${(d.direction || 0) - 45}deg); filter: drop-shadow(0 0 4px ${color})"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-1.1-.3-2.2.4-2.2 1.5l0 0c0 .6.3 1.2.8 1.5l7.3 3.3-3.3 3.3-3-.4c-.5-.1-1.1.1-1.4.5l-.3.3c-.4.4-.4 1.1 0 1.5l1.6 1.6c.4.4 1.1.4 1.5 0l.3-.3c.4-.3.6-.9.5-1.4l-.4-3 3.3-3.3 3.3 7.3c.3.5.9.8 1.5.8l0 0c1.1 0 1.8-1.1 1.5-2.2z"/></svg>`;
-                    } else if (d.iconType === 'ship') {
-                      iconSVG = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="${color}" stroke-width="3" fill="none" style="filter: drop-shadow(0 0 4px ${color})"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M9 12h6"/></svg>`;
+                    let iconSVG = "";
+                    if (d.iconType === "plane") {
+                      iconSVG = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="${color}" stroke-width="3" fill="none" style="transform: rotate(${(d.direction || 0) - 45}deg); filter: drop-shadow(0 0 4px ${color})"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-1.1-.3-2.2.4-2.2 1.5l0 0c0 .6.3 1.2.8 1.5l7.3 3.3-3.3 3.3-3-.4c-.5-.1-1.1.1-1.4.5l-.3.3c-.4.4-.4 1.1 0 1.5l1.6 1.6c.4.4 1.1.4 1.5 0l.3-.3c.4-.3.6-.9.5-1.4l-.4-3 3.3-3.3 3.3 7.3c.3.5.9.8 1.5.8l0 0c1.1 0 1.8-1.1 1.5-2.2z"/></svg>`;
+                    } else if (d.iconType === "ship") {
+                      iconSVG = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="${color}" stroke-width="3" fill="none" style="filter: drop-shadow(0 0 4px ${color})"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M9 12h6"/></svg>`;
                     } else {
-                      iconSVG = `<div style="width: 8px; height: 8px; border-radius: 50%; background: ${color}; box-shadow: 0 0 8px ${color}"></div>`;
+                      iconSVG = `<div style="width: 10px; height: 10px; border-radius: 50%; background: ${color}; box-shadow: 0 0 8px ${color}"></div>`;
                     }
 
                     el.innerHTML = `
-                      <div class="tactical-marker" style="display:flex; flex-direction:column; align-items:center; cursor:pointer">
+                      <style>
+                        .tactical-marker {
+                          pointer-events: auto !important;
+                          z-index: 100;
+                          will-change: transform;
+                        }
+                        .tactical-marker:hover .marker-hover-tooltip {
+                          opacity: 1 !important;
+                          transform: translateX(-50%) translateY(0) !important;
+                        }
+                      </style>
+                      <div class="tactical-marker" style="display:flex; flex-direction:column; align-items:center; cursor:pointer; transition: all 0.2s ease-out; position: relative; padding: 15px; margin: -15px;">
                          ${iconSVG}
-                         <div style="font-size:7px; color:#fff; font-weight:900; margin-top:2px; white-space:nowrap; text-shadow:0 1px 2px #000; background:rgba(0,0,0,0.4); padding: 1px 4px; border-radius:2px">${d.label?.toUpperCase()}</div>
+                         <div style="font-size:11px; color:#fff; font-weight:900; margin-top:5px; white-space:nowrap; text-shadow:0 1px 3px #000; background:rgba(13,21,39,0.8); padding: 3px 8px; border-radius:4px; border: 1px solid rgba(255,255,255,0.1); pointer-events: none;">${d.label?.toUpperCase()}</div>
+                         
+                         <!-- Tactical Tooltip -->
+                         <div class="marker-hover-tooltip" style="
+                           position: absolute; 
+                           bottom: 130%; 
+                           left: 50%; 
+                           transform: translateX(-50%) translateY(15px); 
+                           background: rgba(10, 15, 30, 0.98); 
+                           border: 1px solid ${color}; 
+                           padding: 16px; 
+                           border-radius: 12px; 
+                           width: 340px; 
+                           opacity: 0; 
+                           pointer-events: none; 
+                           transition: all 0.2s ease-out; 
+                           z-index: 10000;
+                           box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+                           backdrop-filter: blur(8px);
+                           border-left: 6px solid ${color};
+                           will-change: opacity, transform;
+                         ">
+                           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                             <div style="color: ${color}; font-weight: 900; font-size: 12px; letter-spacing: 1.5px; text-shadow: 0 0 15px ${color}88;">
+                               ${d.label?.toUpperCase()}
+                             </div>
+                             <div style="font-size: 9px; color: #5a7a9a; background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); font-weight: 950; letter-spacing: 1px;">SITREP ALPHA</div>
+                           </div>
+                           <div style="color: #fff; font-size: 11.5px; line-height: 1.6; font-weight: 500; font-family: 'Inter', sans-serif;">
+                             ${d.text}
+                           </div>
+                           <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+                             <div style="display: flex; gap: 6px;">
+                               <div style="width: 6px; height: 6px; background: ${color}; border-radius: 50%; box-shadow: 0 0 8px ${color};"></div>
+                               <div style="width: 6px; height: 6px; background: ${color}; opacity: 0.4; border-radius: 50%;"></div>
+                             </div>
+                             <span style="font-size: 10px; color: ${color}; font-weight: 900; letter-spacing: 2px;">SECURE LINK: STABLE</span>
+                           </div>
+                         </div>
                       </div>
                     `;
+
                     el.onclick = () => {
-                      // High-fidelity tooltip logic
-                      const tooltip = document.createElement('div');
-                      tooltip.style.cssText = `background:#0d1527; padding:12px; border:1px solid ${color}; border-radius:8px; pointer-events:none; z-index:1000; color:#fff; font-size:11px`;
-                      tooltip.innerHTML = `<strong>${d.label}</strong><br/>${d.text}`;
-                      // Simple click to show detail panel if applicable
                       if (d.data) setSelectedRoute(d.data);
                     };
                     return el;
@@ -969,22 +1417,27 @@ export default function ConflictGlobe() {
                   htmlLat="lat"
                   htmlLng="lng"
                   htmlAltitude={0.02}
-
                   // --- ARCS (Aviation / Trade) ---
                   arcsData={[
-                    ...(viewMode === "SUPPLY_CHAIN" ? supplyChainData.arcs : []),
-                    ...(viewMode === "COMMODITIES" && activeLayers.has("trade_routes")
+                    ...(viewMode === "SUPPLY_CHAIN"
+                      ? supplyChainData.arcs
+                      : []),
+                    ...(viewMode === "COMMODITIES" &&
+                    activeLayers.has("trade_routes")
                       ? TRADE_DATA.slice(0, 30).map((t) => {
-                        const sCoords = FINANCE_POINTS[Math.floor(Math.random() * FINANCE_POINTS.length)];
-                        return {
-                          startLat: sCoords.lat,
-                          startLng: sCoords.lng,
-                          endLat: 35 + Math.random() * 10,
-                          endLng: 104 + Math.random() * 10,
-                          color: ["#f1c40f22", "#f1c40fcc", "#f1c40f22"]
-                        };
-                      })
-                      : [])
+                          const sCoords =
+                            FINANCE_POINTS[
+                              Math.floor(Math.random() * FINANCE_POINTS.length)
+                            ];
+                          return {
+                            startLat: sCoords.lat,
+                            startLng: sCoords.lng,
+                            endLat: 35 + Math.random() * 10,
+                            endLng: 104 + Math.random() * 10,
+                            color: ["#f1c40f22", "#f1c40fcc", "#f1c40f22"],
+                          };
+                        })
+                      : []),
                   ]}
                   arcColor={(d) => d.color}
                   arcDashLength={0.4}
@@ -992,17 +1445,24 @@ export default function ConflictGlobe() {
                   arcDashAnimateTime={2000}
                   arcStroke={0.5}
                   onArcClick={(d) => d.data && setSelectedRoute(d.data)}
-
                   // --- PATHS (Pipelines / Maritime) ---
                   pathsData={[
-                    ...(viewMode === "SUPPLY_CHAIN" ? supplyChainData.paths : []),
-                    ...(viewMode === "SUPPLY_CHAIN" && activeLayers.has("Pipelines")
-                      ? COMMODITY_LINES.filter((l) => l.type === "pipeline").map((l) => ({
-                        path: [[l.startLat, l.startLng], [l.endLat, l.endLng]],
-                        color: l.color,
-                        name: l.name,
-                      }))
-                      : [])
+                    ...(viewMode === "SUPPLY_CHAIN"
+                      ? supplyChainData.paths
+                      : []),
+                    ...(viewMode === "SUPPLY_CHAIN" &&
+                    activeLayers.has("Pipelines")
+                      ? COMMODITY_LINES.filter(
+                          (l) => l.type === "pipeline",
+                        ).map((l) => ({
+                          path: [
+                            [l.startLat, l.startLng],
+                            [l.endLat, l.endLng],
+                          ],
+                          color: l.color,
+                          name: l.name,
+                        }))
+                      : []),
                   ]}
                   pathColor={(d) => d.color}
                   pathStroke={2}
@@ -1013,6 +1473,17 @@ export default function ConflictGlobe() {
                     `<div style="color:${d.color};font-weight:900;background:rgba(0,0,0,0.8);padding:4px 8px;border-radius:4px">${d.name || d.data?.corridor}</div>`
                   }
                   onPolygonClick={(d) => setSelectedCountry(d.properties)}
+                  onCameraMove={(pov) => {
+                    // Optimized throttling for smoother globe rotation
+                    if (!window._lastScaleUpdate || Date.now() - window._lastScaleUpdate > 50) {
+                      const scale = Math.max(0.7, 2.2 / (pov.altitude + 1.2));
+                      const markers = document.querySelectorAll('.tactical-marker');
+                      markers.forEach(m => {
+                        m.style.transform = `scale(${scale})`;
+                      });
+                      window._lastScaleUpdate = Date.now();
+                    }
+                  }}
                 />
 
                 {/* --- SELECTED ROUTE INTEL PANEL --- */}
@@ -1023,59 +1494,208 @@ export default function ConflictGlobe() {
                       animate={{ x: 0, opacity: 1 }}
                       exit={{ x: 400, opacity: 0 }}
                       style={{
-                        position: 'absolute',
-                        right: '20px',
-                        top: '100px',
-                        width: '300px',
-                        background: 'rgba(13,21,39,0.95)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid #1e2d4a',
-                        borderRadius: '16px',
-                        padding: '20px',
+                        position: "absolute",
+                        right: "20px",
+                        top: "100px",
+                        width: "300px",
+                        background: "rgba(13,21,39,0.95)",
+                        backdropFilter: "blur(10px)",
+                        border: "1px solid #1e2d4a",
+                        borderRadius: "16px",
+                        padding: "20px",
                         zIndex: 200,
-                        boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+                        boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <div style={{ fontSize: '10px', color: '#f1c40f', fontWeight: '900', letterSpacing: '1px' }}>SUPPLY CHAIN INTEL</div>
-                        <X size={16} color="#5a7a9a" onClick={() => setSelectedRoute(null)} style={{ cursor: 'pointer' }} />
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: "16px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "10px",
+                            color: "#f1c40f",
+                            fontWeight: "900",
+                            letterSpacing: "1px",
+                          }}
+                        >
+                          SUPPLY CHAIN INTEL
+                        </div>
+                        <X
+                          size={16}
+                          color="#5a7a9a"
+                          onClick={() => setSelectedRoute(null)}
+                          style={{ cursor: "pointer" }}
+                        />
                       </div>
 
-                      <h4 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: '900', color: '#fff' }}>
+                      <h4
+                        style={{
+                          margin: "0 0 10px 0",
+                          fontSize: "16px",
+                          fontWeight: "900",
+                          color: "#fff",
+                        }}
+                      >
                         {selectedRoute.source} → {selectedRoute.target}
                       </h4>
-                      <div style={{ fontSize: '12px', color: '#5a7a9a', marginBottom: '16px', fontWeight: '800' }}>{selectedRoute.corridor}</div>
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#5a7a9a",
+                          marginBottom: "16px",
+                          fontWeight: "800",
+                        }}
+                      >
+                        {selectedRoute.corridor}
+                      </div>
 
-                      <div style={{ display: 'grid', gap: '12px' }}>
-                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '10px' }}>
-                          <div style={{ fontSize: '10px', color: '#5a7a9a', marginBottom: '4px' }}>CARGO SPECIFICATIONS</div>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                            {selectedRoute.goods.map(g => (
-                              <span key={g} style={{ background: '#f1c40f22', color: '#f1c40f', padding: '2px 8px', borderRadius: '4px', fontSize: '9px', fontWeight: '900' }}>{g}</span>
+                      <div style={{ display: "grid", gap: "12px" }}>
+                        <div
+                          style={{
+                            background: "rgba(255,255,255,0.03)",
+                            padding: "10px",
+                            borderRadius: "10px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: "10px",
+                              color: "#5a7a9a",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            CARGO SPECIFICATIONS
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: "6px",
+                            }}
+                          >
+                            {selectedRoute.goods.map((g) => (
+                              <span
+                                key={g}
+                                style={{
+                                  background: "#f1c40f22",
+                                  color: "#f1c40f",
+                                  padding: "2px 8px",
+                                  borderRadius: "4px",
+                                  fontSize: "9px",
+                                  fontWeight: "900",
+                                }}
+                              >
+                                {g}
+                              </span>
                             ))}
                           </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                          <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '10px' }}>
-                            <div style={{ fontSize: '10px', color: '#5a7a9a', marginBottom: '4px' }}>VALUE</div>
-                            <div style={{ fontSize: '13px', fontWeight: '900', color: '#2ecc71' }}>{selectedRoute.value}</div>
+                        <div style={{ display: "flex", gap: "10px" }}>
+                          <div
+                            style={{
+                              flex: 1,
+                              background: "rgba(255,255,255,0.03)",
+                              padding: "10px",
+                              borderRadius: "10px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: "10px",
+                                color: "#5a7a9a",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              VALUE
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "13px",
+                                fontWeight: "900",
+                                color: "#2ecc71",
+                              }}
+                            >
+                              {selectedRoute.value}
+                            </div>
                           </div>
-                          <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '10px' }}>
-                            <div style={{ fontSize: '10px', color: '#5a7a9a', marginBottom: '4px' }}>VOLUME</div>
-                            <div style={{ fontSize: '13px', fontWeight: '900', color: '#fff' }}>{selectedRoute.volume}</div>
+                          <div
+                            style={{
+                              flex: 1,
+                              background: "rgba(255,255,255,0.03)",
+                              padding: "10px",
+                              borderRadius: "10px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: "10px",
+                                color: "#5a7a9a",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              VOLUME
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "13px",
+                                fontWeight: "900",
+                                color: "#fff",
+                              }}
+                            >
+                              {selectedRoute.volume}
+                            </div>
                           </div>
                         </div>
 
-                        <div style={{ background: 'rgba(231,76,60,0.1)', border: '1px solid rgba(231,76,60,0.2)', padding: '10px', borderRadius: '10px' }}>
-                          <div style={{ fontSize: '10px', color: '#e74c3c', marginBottom: '4px' }}>RISC COEFFICIENT</div>
-                          <div style={{ fontSize: '11px', color: '#fff', fontWeight: '800' }}>{selectedRoute.risk_factors}</div>
+                        <div
+                          style={{
+                            background: "rgba(231,76,60,0.1)",
+                            border: "1px solid rgba(231,76,60,0.2)",
+                            padding: "10px",
+                            borderRadius: "10px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: "10px",
+                              color: "#e74c3c",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            RISC COEFFICIENT
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "11px",
+                              color: "#fff",
+                              fontWeight: "800",
+                            }}
+                          >
+                            {selectedRoute.risk_factors}
+                          </div>
                         </div>
                       </div>
 
                       <button
-                        style={{ width: '100%', marginTop: '20px', background: '#f1c40f', color: '#000', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: '900', fontSize: '11px', cursor: 'pointer' }}
-                        onClick={() => navigate('/analysis')}
+                        style={{
+                          width: "100%",
+                          marginTop: "20px",
+                          background: "#f1c40f",
+                          color: "#000",
+                          border: "none",
+                          padding: "10px",
+                          borderRadius: "8px",
+                          fontWeight: "900",
+                          fontSize: "11px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => navigate("/analysis")}
                       >
                         GENERATE SUPPLY CHAIN REPORT
                       </button>
@@ -1170,19 +1790,22 @@ export default function ConflictGlobe() {
                           };
 
                           const name = f.properties.ADMIN || f.properties.NAME;
-                          const conflict = CONFLICT_ZONES_POLY.find(
-                            (c) => c.country === name,
-                          );
                           let fill = "rgba(255,255,255,0.03)";
-                          if (
+                          
+                          // Priority 1: Hazard Map Filter
+                          if (activeLayers.has("Hazard Map") && viewMode === "CONFLICT") {
+                            const hazard = CONFLICT_HAZARDS[name];
+                            if (hazard === 'RED') fill = 'rgba(231, 76, 60, 0.6)';
+                            else if (hazard === 'YELLOW') fill = 'rgba(241, 196, 15, 0.5)';
+                            else if (hazard === 'BLUE') fill = 'rgba(52, 152, 219, 0.4)';
+                          } else if (
                             viewMode === "CONFLICT" &&
-                            conflict &&
-                            activeLayers.has("conflict_zones")
+                            activeLayers.has("Conflict Zones")
                           ) {
-                            fill =
-                              conflict.level === "CRITICAL"
-                                ? "rgba(231,76,60,0.3)"
-                                : "rgba(230,126,34,0.2)";
+                            const conflict = CONFLICT_ZONES_POLY.find((c) => c.country === name);
+                            if (conflict) {
+                              fill = conflict.level === "CRITICAL" ? "rgba(231,76,60,0.4)" : "rgba(230,126,34,0.3)";
+                            }
                           }
 
                           return (
@@ -1221,7 +1844,7 @@ export default function ConflictGlobe() {
                                     strokeWidth="1"
                                     fill="none"
                                     strokeDasharray="2,1"
-                                    style={{ cursor: 'pointer', opacity: 0.6 }}
+                                    style={{ cursor: "pointer", opacity: 0.6 }}
                                     onClick={() => setSelectedRoute(arc.data)}
                                   />
                                 );
@@ -1230,11 +1853,13 @@ export default function ConflictGlobe() {
                             {/* Maritime Paths (2D) */}
                             {activeLayers.has("Trade Routes") &&
                               supplyChainData.paths.map((p, i) => {
-                                const pathPoints = p.path.map((coord) => {
-                                  const x = (coord[1] + 180) * (1000 / 360);
-                                  const y = (90 - coord[0]) * (500 / 180);
-                                  return `${x},${y}`;
-                                }).join(" L ");
+                                const pathPoints = p.path
+                                  .map((coord) => {
+                                    const x = (coord[1] + 180) * (1000 / 360);
+                                    const y = (90 - coord[0]) * (500 / 180);
+                                    return `${x},${y}`;
+                                  })
+                                  .join(" L ");
                                 return (
                                   <path
                                     key={`path-2d-${i}`}
@@ -1242,7 +1867,7 @@ export default function ConflictGlobe() {
                                     stroke="#1abc9c"
                                     strokeWidth="1.5"
                                     fill="none"
-                                    style={{ cursor: 'pointer', opacity: 0.8 }}
+                                    style={{ cursor: "pointer", opacity: 0.8 }}
                                     onClick={() => setSelectedRoute(p.data)}
                                   >
                                     <title>{p.data?.corridor}</title>
@@ -1253,7 +1878,8 @@ export default function ConflictGlobe() {
                         )}
 
                         {/* 2D Paths (Pipelines / Energy) */}
-                        {(viewMode === "SUPPLY_CHAIN" || viewMode === "COMMODITIES") &&
+                        {(viewMode === "SUPPLY_CHAIN" ||
+                          viewMode === "COMMODITIES") &&
                           activeLayers.has("Pipelines") &&
                           COMMODITY_LINES.map((l, i) => {
                             const x1 = (l.startLng + 180) * (1000 / 360);
@@ -1282,36 +1908,66 @@ export default function ConflictGlobe() {
                           const color = EVENT_TYPES[m.type]?.color || "#fff";
 
                           let symbol = null;
-                          if (m.iconType === 'plane') {
+                          if (m.iconType === "plane") {
                             symbol = (
                               <path
                                 d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z"
                                 fill={color}
                                 transform={`translate(${x - 6}, ${y - 6}) scale(0.5) rotate(${(m.direction || 0) + 180}, 12, 12)`}
-                                style={{ filter: `drop-shadow(0 0 3px ${color})` }}
+                                style={{
+                                  filter: `drop-shadow(0 0 3px ${color})`,
+                                }}
                               />
                             );
-                          } else if (m.iconType === 'ship') {
+                          } else if (m.iconType === "ship") {
                             symbol = (
                               <path
                                 d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z"
                                 fill={color}
                                 transform={`translate(${x - 5}, ${y - 5}) scale(0.4)`}
-                                style={{ filter: `drop-shadow(0 0 3px ${color})` }}
+                                style={{
+                                  filter: `drop-shadow(0 0 3px ${color})`,
+                                }}
                               />
                             );
                           } else {
                             symbol = (
-                              <circle cx={x} cy={y} r="3" fill={color} style={{ filter: `drop-shadow(0 0 5px ${color})` }}>
-                                <animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite" />
+                              <circle
+                                cx={x}
+                                cy={y}
+                                r="3"
+                                fill={color}
+                                style={{
+                                  filter: `drop-shadow(0 0 5px ${color})`,
+                                }}
+                              >
+                                <animate
+                                  attributeName="r"
+                                  values="3;5;3"
+                                  dur="2s"
+                                  repeatCount="indefinite"
+                                />
                               </circle>
                             );
                           }
 
                           return (
-                            <g key={`marker-2d-${i}`} style={{ cursor: 'pointer' }}>
+                            <g
+                              key={`marker-2d-${i}`}
+                              style={{ cursor: "pointer" }}
+                            >
                               {symbol}
-                              <text x={x + 6} y={y + 3} fill="#fff" fontSize="5" fontWeight="900" style={{ letterSpacing: "0.5px", textShadow: '0 1px 2px #000' }}>
+                              <text
+                                x={x + 6}
+                                y={y + 3}
+                                fill="#fff"
+                                fontSize="5"
+                                fontWeight="900"
+                                style={{
+                                  letterSpacing: "0.5px",
+                                  textShadow: "0 1px 2px #000",
+                                }}
+                              >
                                 {m.label?.toUpperCase()}
                               </text>
                             </g>
@@ -1358,23 +2014,22 @@ export default function ConflictGlobe() {
             </button>
           </div>
 
-          {/* RIGHT SIDEBAR TRIGGER & TOOLS */}
+          {/* TACTICAL TOOLS (Pinned to Top-Left of Map) */}
           <div
             style={{
               position: "absolute",
               top: "20px",
-              right: isRightSidebarOpen ? "340px" : "20px",
+              left: "20px",
               display: "flex",
               flexDirection: "column",
               gap: "8px",
               zIndex: 101,
-              transition: "right 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-              alignItems: "flex-end"
+              alignItems: "flex-start",
             }}
           >
-            {!isRightSidebarOpen && (
+            {!isLayersOpen && (
               <button
-                onClick={() => setIsRightSidebarOpen(true)}
+                onClick={() => setIsLayersOpen(true)}
                 style={{
                   width: "40px",
                   height: "40px",
@@ -1391,7 +2046,9 @@ export default function ConflictGlobe() {
               </button>
             )}
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+            >
               <button
                 style={{
                   width: "40px",
@@ -1469,18 +2126,20 @@ export default function ConflictGlobe() {
           {/* RIGHT LAYERS SIDEBAR */}
           <motion.div
             animate={{
-              x: isRightSidebarOpen ? 0 : 320,
-              width: isRightSidebarOpen ? 320 : 0,
+              x: isLayersOpen ? 0 : 320,
+              width: isLayersOpen ? 320 : 0,
             }}
             initial={{ x: 320, width: 0 }}
             style={{
               position: "absolute",
-              right: 0,
+              right: isStabilityOpen ? 420 : 0,
               top: 0,
               bottom: 0,
+
               background: "rgba(6,11,24,0.9)",
               backdropFilter: "blur(20px)",
-              borderLeft: "1px solid #1e2d4a",
+              borderLeft: isLayersOpen ? "1px solid #1e2d4a" : "none",
+
               display: "flex",
               flexDirection: "column",
               zIndex: 100,
@@ -1494,7 +2153,7 @@ export default function ConflictGlobe() {
                 width: "320px",
                 display: "flex",
                 justifyContent: "space-between",
-                alignItems: "center"
+                alignItems: "center",
               }}
             >
               <h3
@@ -1509,7 +2168,7 @@ export default function ConflictGlobe() {
                 MAP LAYERS
               </h3>
               <button
-                onClick={() => setIsRightSidebarOpen(false)}
+                onClick={() => setIsLayersOpen(false)}
                 style={{
                   background: "transparent",
                   border: "none",
@@ -1572,7 +2231,7 @@ export default function ConflictGlobe() {
                     background: activeLayers.has(layer.id)
                       ? "rgba(46, 204, 113, 0.1)"
                       : "transparent",
-                    marginBottom: "4px"
+                    marginBottom: "4px",
                   }}
                 >
                   <div
@@ -1609,6 +2268,89 @@ export default function ConflictGlobe() {
             </div>
           </motion.div>
         </div>
+
+        {/* RIGHT STABILITY SIDEBAR */}
+        <motion.div
+          animate={{
+            x: isStabilityOpen ? 0 : 420,
+            width: isStabilityOpen ? 420 : 0,
+          }}
+          transition={{ type: "spring", damping: 20, stiffness: 100 }}
+          style={{
+            background: "rgba(6,11,24,0.92)",
+            backdropFilter: "blur(25px)",
+            borderLeft: isStabilityOpen ? "1px solid #1e2d4a" : "none",
+
+            display: "flex",
+            flexDirection: "column",
+            zIndex: 100,
+            overflow: "hidden",
+            position: "relative",
+            flexShrink: 0,
+            boxShadow: "-10px 0 30px rgba(0,0,0,0.5)",
+          }}
+        >
+          <div
+            style={{
+              padding: "24px 20px",
+              borderBottom: "1px solid #1e2d4a",
+              width: "420px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              background: "rgba(255,255,255,0.02)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {viewMode === "FINANCE" ? (
+                <TrendingUp size={16} color="#2ecc71" />
+              ) : (
+                <Shield size={16} color="#e74c3c" />
+              )}
+              <h3
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "900",
+                  letterSpacing: "2px",
+                  color: "#fff",
+                  margin: 0,
+                }}
+              >
+                {viewMode === "FINANCE"
+                  ? "MARKET INTELLIGENCE"
+                  : "STABILITY & SYSTEMS"}
+              </h3>
+            </div>
+
+            <button
+              onClick={() => setIsStabilityOpen(false)}
+              style={{
+                background: "rgba(255,255,255,0.05)",
+                border: "none",
+                borderRadius: "4px",
+                padding: "4px",
+                cursor: "pointer",
+              }}
+            >
+              <X size={16} color="#5a7a9a" />
+            </button>
+          </div>
+
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              width: "420px",
+            }}
+          >
+            {viewMode === "FINANCE" ? (
+              <MarketAnalysisPanel marketData={marketAnalysisData} />
+            ) : (
+              <GlobalStabilityPanel />
+            )}
+
+          </div>
+        </motion.div>
       </div>
 
       {/* --- BOTTOM DASHBOARDS --- */}

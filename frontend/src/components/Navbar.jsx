@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Sun, Moon } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const Navbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { theme, toggleTheme } = useTheme();
     const [user, setUser] = useState(null);
 
     useEffect(() => {
@@ -64,6 +67,13 @@ const Navbar = () => {
                         <Link to="/signup" className="nav-link">Signup</Link>
                     </div>
                 )}
+                <button 
+                  onClick={toggleTheme} 
+                  className="theme-toggle"
+                  title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                >
+                    {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                </button>
             </div>
         </nav>
     );

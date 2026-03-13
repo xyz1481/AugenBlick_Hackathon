@@ -1,269 +1,420 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, Shield, Database, 
-  TrendingUp, Activity, AlertCircle 
+  TrendingUp, Activity, AlertCircle,
+  Anchor, Ship, Truck, Box, Globe,
+  Maximize2, MousePointer2, Info, Plane, Train
 } from 'lucide-react';
+import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap, LayersControl } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-// --- DATA ---
+// Fix for default marker icons in Leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
+
+const COUNTRY_COORDS = {
+  'Taiwan': [23.6, 120.9, 'tw'],
+  'USA': [37.0, -95.7, 'us'],
+  'China': [35.8, 104.1, 'cn'],
+  'Germany': [51.1, 10.4, 'de'],
+  'Japan': [36.2, 138.2, 'jp'],
+  'Netherlands': [52.1, 5.2, 'nl'],
+  'Saudi Arabia': [23.8, 45.0, 'sa'],
+  'Norway': [60.4, 8.4, 'no'],
+  'Russia': [61.5, 105.3, 'ru'],
+  'India': [20.5, 78.9, 'in'],
+  'Brazil': [-14.2, -51.9, 'br'],
+  'Indonesia': [-0.7, 113.9, 'id'],
+  'Spain': [40.4, -3.7, 'es'],
+  'UAE': [23.4, 53.8, 'ae'],
+  'Bangladesh': [23.6, 90.3, 'bd'],
+  'South Korea': [35.9, 127.7, 'kr'],
+  'Singapore': [1.3, 103.8, 'sg'],
+  'Australia': [-25.2, 133.7, 'au'],
+  'Qatar': [25.3, 51.1, 'qa'],
+  'Canada': [56.1, -106.3, 'ca'],
+  'Vietnam': [14.0, 108.2, 'vn'],
+  'Malaysia': [4.2, 101.9, 'my'],
+  'UK': [55.3, -3.4, 'gb'],
+  'Mexico': [23.6, -102.5, 'mx']
+};
+
 const TRADE_SCENARIOS = {
   'Semiconductors': {
-    nodes: [
-      { id: 'Taiwan', flag: 'tw', pos: [100, 300] },
-      { id: 'USA', flag: 'us', pos: [400, 100] },
-      { id: 'China', flag: 'cn', pos: [400, 250] },
-      { id: 'Germany', flag: 'de', pos: [400, 400] },
-      { id: 'Japan', flag: 'jp', pos: [400, 550] },
-      { id: 'Netherlands', flag: 'nl', pos: [700, 300] }
-    ],
     links: [
-      { from: 'Taiwan', to: 'USA', val: 84, corridor: 'TSMC ➔ Apple/Intel' },
-      { from: 'Taiwan', to: 'China', val: 120, corridor: 'Consumer Electronics' },
-      { from: 'Taiwan', to: 'Germany', val: 56, corridor: 'Automotive Chips' },
-      { from: 'Taiwan', to: 'Japan', val: 45, corridor: 'High-Precision Robotics' },
-      { from: 'USA', to: 'Netherlands', val: 32, corridor: 'ASML Systems' },
-      { from: 'Japan', to: 'Netherlands', val: 28, corridor: 'Chemical Resists' }
-    ]
+      { from: 'Taiwan', to: 'India', value: '$22.5B', type: 'AIR', status: 'GROWING', color: '#6366f1', routeInfo: 'Advanced Chip Ingress (Dholera Hub)', path: [[23.6, 120.9], [15.0, 110.0], [20.5, 78.9]] },
+      { from: 'South Korea', to: 'India', value: '$12.4B', type: 'AIR', status: 'STABLE', color: '#6366f1', routeInfo: 'Memory Module Flow (NCR Hub)', path: [[35.9, 127.7], [25.0, 100.0], [20.5, 78.9]] },
+      { from: 'Japan', to: 'India', value: '$18.8B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'SME Tooling Link (Chennai Port)', path: [[36.2, 138.2], [20.0, 120.0], [10.0, 100.0], [13.0, 80.2]] },
+      { from: 'USA', to: 'India', value: '$15.2B', type: 'AIR', status: 'STABLE', color: '#6366f1', routeInfo: 'Design-IP Strategic Bridge', path: [[37.0, -95.7], [50.0, -40.0], [45.0, 20.0], [20.5, 78.9]] },
+      { from: 'Netherlands', to: 'India', value: '$8.2B', type: 'AIR', status: 'STABLE', color: '#8b5cf6', routeInfo: 'EUV Lithography Logistics', path: [[52.1, 5.2], [45.0, 40.0], [20.5, 78.9]] },
+      { from: 'Israel', to: 'India', value: '$4.5B', type: 'AIR', status: 'STABLE', color: '#6366f1', routeInfo: 'R&D Silicon Pathway', path: [[31.0, 34.8], [25.0, 55.0], [20.5, 78.9]] },
+      { from: 'Singapore', to: 'India', value: '$9.8B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'Assembly-Testing Link', path: [[1.3, 103.8], [5.0, 90.0], [20.5, 78.9]] },
+      { from: 'Malaysia', to: 'India', value: '$7.4B', type: 'AIR', status: 'STABLE', color: '#6366f1', routeInfo: 'Backend Packaging Flow', path: [[4.2, 101.9], [15.0, 90.0], [20.5, 78.9]] },
+      { from: 'Germany', to: 'India', value: '$11.2B', type: 'RAIL', status: 'STABLE', color: '#f59e0b', routeInfo: 'Industrial Chipset Rail', path: [[51.1, 10.4], [52.3, 76.9], [43.8, 87.6], [20.5, 78.9]] },
+      { from: 'Vietnam', to: 'India', value: '$5.6B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'Emerging Ecosystem Feed', path: [[14.0, 108.2], [5.0, 95.0], [13.0, 80.2]] }
+    ],
+    summary: 'High-density tracking of logic, memory, and fabrication tooling feeding India\'s emerging global semiconductor hub.'
   },
   'Energy': {
-    nodes: [
-      { id: 'Saudi Arabia', flag: 'sa', pos: [100, 300] },
-      { id: 'Norway', flag: 'no', pos: [100, 450] },
-      { id: 'Russia', flag: 'ru', pos: [100, 150] },
-      { id: 'Germany', flag: 'de', pos: [600, 150] },
-      { id: 'China', flag: 'cn', pos: [600, 350] },
-      { id: 'India', flag: 'in', pos: [600, 550] }
-    ],
     links: [
-      { from: 'Saudi Arabia', to: 'China', val: 180, corridor: 'Oil Exports' },
-      { from: 'Saudi Arabia', to: 'India', val: 95, corridor: 'Petroleum Logistics' },
-      { from: 'Norway', to: 'Germany', val: 110, corridor: 'Natural Gas' },
-      { from: 'Russia', to: 'China', val: 140, corridor: 'Siberia Pipelines' },
-      { from: 'Russia', to: 'India', val: 85, corridor: 'Urals Crude' }
-    ]
+      { from: 'Saudi Arabia', to: 'India', value: '$142.2B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'Jamnagar Strategic Reserve Link', path: [[23.8, 45.0], [20.0, 60.0], [22.5, 70.0]] },
+      { from: 'UAE', to: 'India', value: '$88.5B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'Mundra Refinery Feed', path: [[23.4, 53.8], [22.0, 65.0], [22.8, 69.7]] },
+      { from: 'Qatar', to: 'India', value: '$32.5B', type: 'SEA', status: 'HIGH TRAFFIC', color: '#60a5fa', routeInfo: 'Dahej LNG Gateway', path: [[25.3, 51.1], [22.0, 60.0], [21.7, 72.6]] },
+      { from: 'Russia', to: 'India', value: '$95.1B', type: 'SEA', status: 'REDIRECTED', color: '#2dd4bf', routeInfo: 'Arctic-Indian Urals Stream', path: [[61.5, 105.3], [70.0, 40.0], [60.0, -5.0], [20.0, -15.0], [-34.0, 18.0], [0.0, 60.0], [18.9, 72.8]] },
+      { from: 'Australia', to: 'India', value: '$42.1B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'Coal & LNG Resource Arc', path: [[-25.2, 133.7], [-10.0, 110.0], [5.0, 90.0], [17.7, 83.3]] },
+      { from: 'Iraq', to: 'India', value: '$38.4B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'Basra-Paradip Crude Path', path: [[33.3, 44.4], [15.0, 55.0], [10.0, 75.0], [20.3, 86.7]] },
+      { from: 'Oman', to: 'India', value: '$12.5B', type: 'PIPE', status: 'PROPOSED', color: '#ef4444', routeInfo: 'Deep-Sea Gas Interconnect', path: [[23.6, 58.5], [22.0, 65.0], [21.0, 70.0]] },
+      { from: 'USA', to: 'India', value: '$22.1B', type: 'SEA', status: 'STABLE', color: '#60a5fa', routeInfo: 'Shale LNG Trans-Atlantic', path: [[30.0, -90.0], [20.0, -40.0], [0.0, -10.0], [-34.0, 18.0], [15.0, 73.0]] },
+      { from: 'Nigeria', to: 'India', value: '$18.4B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'West African Sweet Crude', path: [[9.0, 8.6], [0.0, 10.0], [-34.0, 18.0], [10.0, 75.0]] },
+      { from: 'Kuwait', to: 'India', value: '$15.2B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'Persian Gulf Logistics Arc', path: [[29.3, 47.9], [25.0, 55.0], [20.0, 65.0], [19.0, 72.8]] }
+    ],
+    summary: 'Tracking India\'s critical energy dependency through a dense network of tanker streams and future pipelines.'
   },
-  'Food & Spices': {
-    nodes: [
-      { id: 'India', flag: 'in', pos: [100, 310] },
-      { id: 'Brazil', flag: 'br', pos: [100, 160] },
-      { id: 'Indonesia', flag: 'id', pos: [100, 460] },
-      { id: 'USA', flag: 'us', pos: [550, 120] },
-      { id: 'Spain', flag: 'es', pos: [550, 260] },
-      { id: 'UAE', flag: 'ae', pos: [550, 420] },
-      { id: 'Bangladesh', flag: 'bd', pos: [550, 570] }
-    ],
+  'India Strategic Network': {
     links: [
-      { from: 'India', to: 'USA', val: 84, corridor: 'Organic Exports' },
-      { from: 'India', to: 'UAE', val: 86, corridor: 'Spice Trade' },
-      { from: 'India', to: 'Bangladesh', val: 87, corridor: 'Rice Grains' },
-      { from: 'Brazil', to: 'USA', val: 92, corridor: 'Soy/Coffee' },
-      { from: 'Indonesia', to: 'Spain', val: 51, corridor: 'Palm Oil' }
-    ]
+      { from: 'India', to: 'USA', value: '$110.4B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'Trans-Suez American Export Arc', path: [[20.5, 78.9], [15.0, 60.0], [12.6, 43.3], [25.0, 35.0], [30.5, 32.3], [36.0, -5.5], [40.0, -40.0], [37.0, -95.7]] },
+      { from: 'India', to: 'UAE', value: '$85.2B', type: 'SEA', status: 'STABLE', color: '#60a5fa', routeInfo: 'IMEC (India-Middle East Corridor)', path: [[20.5, 78.9], [22.0, 65.0], [23.4, 53.8]] },
+      { from: 'India', to: 'Bangladesh', value: '$18.1B', type: 'RAIL', status: 'HIGH TRAFFIC', color: '#f59e0b', routeInfo: 'Trans-Border Rail Network', path: [[20.5, 78.9], [23.0, 85.0], [23.6, 90.3]] },
+      { from: 'India', to: 'Russia', value: '$45.3B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'INSTC (International North-South Corridor)', path: [[20.5, 78.9], [25.0, 60.0], [35.0, 52.0], [45.0, 50.0], [61.5, 105.3]] },
+      { from: 'India', to: 'Vietnam', value: '$14.3B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'ASEAN Look-East Pathway', path: [[20.5, 78.9], [10.0, 90.0], [2.2, 102.2], [14.0, 108.2]] },
+      { from: 'India', to: 'UK', value: '$32.1B', type: 'SEA', status: 'STABLE', color: '#60a5fa', routeInfo: 'Trans-Atlantic Freight Arc', path: [[20.5, 78.9], [15.0, 60.0], [30.0, 32.0], [35.0, -5.0], [55.3, -3.4]] },
+      { from: 'India', to: 'Germany', value: '$28.4B', type: 'SEA', status: 'STABLE', color: '#60a5fa', routeInfo: 'Euro-Indian Industrial Bridge', path: [[20.5, 78.9], [15.0, 60.0], [30.0, 32.0], [35.0, 15.0], [45.0, 10.0], [51.1, 10.4]] },
+      { from: 'India', to: 'Australia', value: '$24.5B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'Indian Ocean Resource Loop', path: [[20.5, 78.9], [5.0, 90.0], [-10.0, 110.0], [-25.2, 133.7]] },
+      { from: 'India', to: 'South Africa', value: '$15.2B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'BRICS Southern Maritime Arc', path: [[20.5, 78.9], [0.0, 60.0], [-15.0, 50.0], [-30.0, 30.0]] },
+      { from: 'India', to: 'Brazil', value: '$12.8B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'South-South Global Trade Arc', path: [[20.5, 78.9], [0.0, 60.0], [-34.0, 18.0], [-25.0, -20.0], [-14.2, -51.9]] },
+      { from: 'India', to: 'Japan', value: '$20.1B', type: 'AIR', status: 'STABLE', color: '#6366f1', routeInfo: 'Indo-Pacific Tech Air-Bridge', path: [[20.5, 78.9], [25.0, 100.0], [30.0, 120.0], [36.2, 138.2]] },
+      { from: 'India', to: 'Saudi Arabia', value: '$42.5B', type: 'SEA', status: 'STABLE', color: '#2dd4bf', routeInfo: 'West Asian Logistics Link', path: [[20.5, 78.9], [20.0, 65.0], [23.8, 45.0]] }
+    ],
+    summary: 'Global tactical monitoring of India\'s dense trade ecosystem, featuring multi-modal corridors across all continents.'
   }
+};
+
+const CustomMarker = ({ country, coord }) => {
+  const icon = L.divIcon({
+    className: 'custom-div-icon',
+    html: `<div style="width: 12px; height: 12px; background: rgba(99, 102, 241, 0.6); border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 10px rgba(99, 102, 241, 0.8);"></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6]
+  });
+
+  return (
+    <Marker position={[coord[0], coord[1]]} icon={icon}>
+      <Popup className="tactical-popup">
+        <div style={{ background: '#0d111d', color: '#fff', padding: '8px', border: '1px solid #1e2d4a', borderRadius: '4px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 900, marginBottom: '4px' }}>{country.toUpperCase()}</div>
+          <div style={{ fontSize: '10px', color: '#5a7a9a' }}>GEOPOLITICAL HUB ACTIVE</div>
+        </div>
+      </Popup>
+    </Marker>
+  );
+};
+
+const MapController = ({ center }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (center) {
+      map.flyTo(center, 3, { duration: 2 });
+    }
+  }, [center, map]);
+  return null;
 };
 
 const SupplyChains = () => {
   const [activeScenario, setActiveScenario] = useState('Semiconductors');
-  const [hoveredNode, setHoveredNode] = useState(null);
   const [hoveredLink, setHoveredLink] = useState(null);
+  const [mapCenter, setMapCenter] = useState([20, 0]);
 
   const scenario = TRADE_SCENARIOS[activeScenario];
-  const getFlagUrl = (code) => `https://flagcdn.com/w80/${code.toLowerCase()}.png`;
+  const getFlagUrl = (code) => `https://flagcdn.com/w80/${code?.toLowerCase()}.png`;
+
+  const processedLinks = useMemo(() => {
+    return scenario.links.map(link => {
+      const positions = link.path;
+      
+      const dashArray = link.type === 'AIR' ? '10, 10' : 
+                        link.type === 'RAIL' ? '15, 5' : 
+                        link.type === 'PIPE' ? '5, 2' : null;
+
+      return { ...link, positions, dashArray };
+    }).filter(Boolean);
+  }, [scenario]);
 
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: '#0a0f1e', 
+      background: '#060a14', 
       color: '#fff', 
       display: 'flex',
-      overflow: 'hidden',
+      flexDirection: 'column',
       margin: '-2rem -4rem',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
+      fontFamily: 'Inter, system-ui, sans-serif',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
       
-      {/* ── Main Canvas (Left) ── */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+      {/* ── TOP NAV ── */}
+      <div style={{ 
+        height: '60px', 
+        background: 'rgba(13, 17, 29, 0.95)', 
+        borderBottom: '1px solid rgba(99, 102, 241, 0.2)',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 2rem',
+        gap: '30px',
+        backdropFilter: 'blur(10px)',
+        zIndex: 1000
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '32px', height: '32px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
+            <Globe size={18} color="#6366f1" />
+          </div>
+          <span style={{ fontWeight: 900, letterSpacing: '2px', fontSize: '14px' }}>REALITY MAP PRO</span>
+        </div>
         
-        {/* Dynamic Background */}
-        <div style={{ 
-          position: 'absolute', inset: 0, 
-          background: 'radial-gradient(circle at 30% 50%, #151a2e 0%, #0a0f1e 100%)',
-          backgroundImage: 'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)',
-          backgroundSize: '30px 30px',
-        }} />
-
-        {/* Tactical Header */}
-        <div style={{ position: 'absolute', top: '3rem', left: '4rem', zIndex: 10 }}>
-           <motion.div 
-             initial={{ opacity: 0, x: -20 }}
-             animate={{ opacity: 1, x: 0 }}
-             style={{ display: 'flex', alignItems: 'center', gap: '15px' }}
-           >
-              <div style={{ padding: '10px', background: 'rgba(52, 152, 219, 0.2)', borderRadius: '12px', border: '1px solid rgba(52, 152, 219, 0.4)' }}>
-                 <Database size={24} color="#3498db" />
-              </div>
-              <div>
-                 <h1 style={{ margin: 0, fontSize: '32px', fontWeight: '900', letterSpacing: '2px' }}>{activeScenario.toUpperCase()}</h1>
-                 <p style={{ margin: 0, color: '#5a7a9a', fontSize: '13px', fontWeight: '700' }}>REAL-TIME SUPPLY CHAIN INGRESS/EGRESS MONITOR</p>
-              </div>
-           </motion.div>
+        <div style={{ display: 'flex', gap: '5px' }}>
+          {Object.keys(TRADE_SCENARIOS).map(s => (
+            <button
+              key={s}
+              onClick={() => setActiveScenario(s)}
+              style={{
+                background: activeScenario === s ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
+                color: activeScenario === s ? '#6366f1' : '#5a7a9a',
+                border: activeScenario === s ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid transparent',
+                padding: '6px 16px',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 900,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                letterSpacing: '0.5px'
+              }}
+            >
+              {s.toUpperCase()}
+            </button>
+          ))}
         </div>
 
-        {/* SVG Flow Map */}
-        <svg width="100%" height="100%" viewBox="0 0 1000 800" style={{ pointerEvents: 'all' }}>
-          <defs>
-            <filter id="glow">
-               <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-               <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-
-          {/* Paths */}
-          {scenario.links.map((link, i) => {
-            const start = scenario.nodes.find(n => n.id === link.from);
-            const end = scenario.nodes.find(n => n.id === link.to);
-            if (!start || !end) return null;
-
-            const [x1, y1] = start.pos;
-            const [x2, y2] = end.pos;
-            const isHovered = (hoveredLink === i) || (hoveredNode === link.from) || (hoveredNode === link.to);
-
-            return (
-              <g key={`l-${i}`} onMouseEnter={() => setHoveredLink(i)} onMouseLeave={() => setHoveredLink(null)}>
-                {/* Visual Path (Outer) */}
-                <path 
-                  d={`M ${x1} ${y1} C ${x1 + (x2-x1)*0.5} ${y1}, ${x1 + (x2-x1)*0.5} ${y2}, ${x2} ${y2}`}
-                  fill="none"
-                  stroke={isHovered ? 'rgba(52, 152, 219, 0.4)' : 'rgba(255,255,255,0.03)'}
-                  strokeWidth={link.val / 6 + 10}
-                  style={{ transition: 'all 0.4s ease' }}
-                />
-                
-                {/* Interaction / Animated Path */}
-                <motion.path 
-                  d={`M ${x1} ${y1} C ${x1 + (x2-x1)*0.5} ${y1}, ${x1 + (x2-x1)*0.5} ${y2}, ${x2} ${y2}`}
-                  fill="none" 
-                  stroke={isHovered ? '#fff' : '#3498db'} 
-                  strokeWidth="2"
-                  strokeDasharray={isHovered ? '6,3' : 'none'}
-                  filter={isHovered ? 'url(#glow)' : 'none'}
-                  animate={{ strokeDashoffset: isHovered ? [0, -48] : 0 }}
-                  transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                  style={{ opacity: isHovered ? 1 : 0.4 }}
-                />
-              </g>
-            );
-          })}
-
-          {/* Nodes */}
-          {scenario.nodes.map((node, i) => (
-            <g 
-              key={`n-${i}`} 
-              transform={`translate(${node.pos[0]}, ${node.pos[1]})`}
-              onMouseEnter={() => setHoveredNode(node.id)}
-              onMouseLeave={() => setHoveredNode(null)}
-              style={{ cursor: 'pointer' }}
-            >
-              <motion.circle 
-                r="38" 
-                fill="#0d111d" 
-                stroke={hoveredNode === node.id ? '#3498db' : 'rgba(255,255,255,0.1)'} 
-                strokeWidth="2"
-                animate={{ scale: hoveredNode === node.id ? 1.15 : 1 }}
-                style={{ filter: hoveredNode === node.id ? 'drop-shadow(0 0 15px rgba(52,152,219,0.5))' : 'none' }}
-              />
-              <image 
-                href={getFlagUrl(node.flag)} 
-                x="-18" y="-12" 
-                width="36" height="24" 
-                style={{ borderRadius: '4px' }}
-              />
-              <text y="58" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="900" style={{ letterSpacing: '1px' }}>
-                {node.id.toUpperCase()}
-              </text>
-            </g>
-          ))}
-        </svg>
-
-        {/* Global Summary Ticker (Bottom) */}
-        <div style={{ 
-          position: 'absolute', bottom: '2rem', left: '4rem', right: '4rem',
-          background: 'rgba(10, 15, 30, 0.9)', border: '1px solid rgba(255,255,255,0.06)',
-          borderRadius: '20px', padding: '1rem 2rem', display: 'flex', gap: '40px', overflowX: 'auto',
-          backdropFilter: 'blur(20px)', zIndex: 20
-        }}>
-           {scenario.links.map((link, i) => (
-             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '15px', whiteSpace: 'nowrap' }}>
-               <img src={getFlagUrl(scenario.nodes.find(n => n.id === link.from).flag)} width="16" height="10" />
-               <span style={{ fontSize: '10px', fontWeight: '800' }}>{link.from} ➔ {link.to}</span>
-               <span style={{ fontSize: '10px', fontWeight: '900', color: '#3498db' }}>${link.val}M</span>
-               <div style={{ width: '1px', height: '10px', background: 'rgba(255,255,255,0.1)' }} />
-             </div>
-           ))}
+        <div style={{ flex: 1 }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', fontSize: '11px', color: '#5a7a9a' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1', boxShadow: '0 0 10px #6366f1' }} />
+            OSM ACTIVE
+          </div>
+          <div style={{ fontWeight: 900, color: '#fff', padding: '4px 10px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>v4.2.0</div>
         </div>
       </div>
 
-      {/* ── Side Scenarios (Right) ── */}
-      <div style={{ 
-        width: '420px', 
-        background: '#0d111d', 
-        borderLeft: '1px solid rgba(255,255,255,0.06)',
-        display: 'flex',
-        flexDirection: 'column',
-        zIndex: 30
-      }}>
-        <div style={{ padding: '3rem 2rem' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '900', letterSpacing: '2px', marginBottom: '8px' }}>TRADE STORIES</h2>
-          <p style={{ color: '#5a7a9a', fontSize: '13px', lineHeight: '1.5' }}>Select a corridor scenario to trace specialized commodity movements across global hubs.</p>
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {/* ── LEFT: LEAFLET MAP ── */}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#080c18' }}>
+          <MapContainer 
+            center={mapCenter} 
+            zoom={3} 
+            style={{ height: '100%', width: '100%' }}
+            zoomControl={false}
+            attributionControl={false}
+          >
+            <LayersControl position="topright">
+              <LayersControl.BaseLayer checked name="Tactical Dark">
+                <TileLayer
+                  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                />
+              </LayersControl.BaseLayer>
+              <LayersControl.BaseLayer name="Street View">
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+              </LayersControl.BaseLayer>
+              <LayersControl.BaseLayer name="Satellite">
+                <TileLayer
+                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                />
+              </LayersControl.BaseLayer>
+              <LayersControl.BaseLayer name="Railway Map">
+                <TileLayer
+                  url="https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png"
+                />
+              </LayersControl.BaseLayer>
+            </LayersControl>
+
+            <MapController center={mapCenter} />
+
+            {/* Routes */}
+            {processedLinks.map((link, i) => (
+              <Polyline
+                key={`${link.from}-${link.to}-${i}`}
+                positions={link.positions}
+                color={hoveredLink === i ? '#fff' : link.color}
+                weight={hoveredLink === i ? 4 : 2}
+                opacity={hoveredLink === i ? 1 : 0.6}
+                dashArray={link.dashArray}
+                eventHandlers={{
+                  mouseover: () => setHoveredLink(i),
+                  mouseout: () => setHoveredLink(null)
+                }}
+              >
+                <Popup>
+                  <div style={{ fontSize: '12px', fontWeight: 900, fontFamily: 'Inter, sans-serif' }}>
+                    <div style={{ color: '#6366f1', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '4px', marginBottom: '4px' }}>
+                      {link.from} ➔ {link.to}
+                    </div>
+                    <div style={{ color: '#fff', background: '#6366f1', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', display: 'inline-block', marginBottom: '6px' }}>
+                      {link.routeInfo}
+                    </div>
+                    <div style={{ margin: '4px 0', fontSize: '11px' }}>Value: {link.value}</div>
+                    <div style={{ fontSize: '10px', color: '#555' }}>Mode: {link.type}NET</div>
+                  </div>
+                </Popup>
+              </Polyline>
+            ))}
+
+            {/* Nodes */}
+            {Object.entries(COUNTRY_COORDS).map(([name, coord]) => (
+              <CustomMarker key={name} country={name} coord={coord} />
+            ))}
+          </MapContainer>
+
+          {/* Map Legend */}
+          <div style={{ position: 'absolute', bottom: '20px', left: '20px', background: 'rgba(13,17,29,0.9)', padding: '15px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ fontSize: '10px', fontWeight: 900, color: '#5a7a9a', marginBottom: '5px' }}>ROUTE CLASSIFICATION</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '10px' }}>
+              <Plane size={12} color="#6366f1" /> <span style={{ color: '#fff' }}>AIR (Strategic/High-Value)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '10px' }}>
+              <Ship size={12} color="#2dd4bf" /> <span style={{ color: '#fff' }}>SEA (Mass/Commodity)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '10px' }}>
+              <Train size={12} color="#f59e0b" /> <span style={{ color: '#fff' }}>RAIL (Trans-Continental)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '10px' }}>
+              <Truck size={12} color="#94a3b8" /> <span style={{ color: '#fff' }}>ROAD (Regional Logistics)</span>
+            </div>
+          </div>
         </div>
 
-        <div style={{ flex: 1, padding: '0 1.5rem', overflowY: 'auto' }}>
-          {Object.keys(TRADE_SCENARIOS).map(s => (
-            <motion.div 
-              key={s}
-              whileHover={{ x: -5 }}
-              onClick={() => setActiveScenario(s)}
-              style={{ 
-                padding: '1.5rem', 
-                borderRadius: '20px', 
-                marginBottom: '1rem',
-                cursor: 'pointer',
-                background: activeScenario === s ? 'rgba(52, 152, 219, 0.1)' : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${activeScenario === s ? '#3498db' : 'transparent'}`,
-                transition: 'all 0.3s'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                 <span style={{ fontWeight: '900', fontSize: '13px', color: activeScenario === s ? '#3498db' : '#fff', letterSpacing: '1px' }}>{s.toUpperCase()} FLOW</span>
-                 <ArrowRight size={14} color={activeScenario === s ? '#3498db' : '#5a7a9a'} />
-              </div>
-              <p style={{ margin: 0, fontSize: '12px', color: activeScenario === s ? '#8aa' : '#5a7a9a', lineHeight: '1.6' }}>
-                {s === 'Semiconductors' && 'Strategic tech nodes tracing the path of advanced lithography and sub-strate logistics.'}
-                {s === 'Energy' && 'Monitoring global hydrocarbon stability across pipeline and ocean tanker corridors.'}
-                {s === 'Food & Spices' && 'Agricultural grain streams tracked from major exporters to developing market hubs.'}
-              </p>
-            </motion.div>
-          ))}
-        </div>
+        {/* ── RIGHT: ROUTE INTELLIGENCE ── */}
+        <div style={{ 
+          width: '400px', 
+          background: '#0a0e17', 
+          borderLeft: '1px solid rgba(255,255,255,0.06)',
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 10
+        }}>
+          <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1' }} />
+              <h2 style={{ fontSize: '15px', fontWeight: 900, margin: 0, letterSpacing: '1px' }}>SYSTEM OVERVIEW</h2>
+            </div>
+            <p style={{ fontSize: '12px', color: '#7a9ab8', lineHeight: '1.7', margin: 0 }}>
+              {scenario.summary}
+            </p>
+          </div>
 
-        {/* Global Alert Monitor */}
-        <div style={{ padding: '2rem', background: 'rgba(0,0,0,0.3)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-           <div style={{ padding: '1.5rem', background: 'rgba(231,76,60,0.05)', borderRadius: '16px', border: '1px solid rgba(231,76,60,0.2)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#e74c3c', marginBottom: '10px' }}>
-                <Shield size={16} />
-                <span style={{ fontSize: '12px', fontWeight: '900', letterSpacing: '1px' }}>SECURITY OVERVIEW</span>
-              </div>
-              <p style={{ fontSize: '11px', color: '#8aa', lineHeight: '1.6', margin: 0 }}>
-                Reality Engine indicates a +22% increase in regional maritime insurance premiums for active {activeScenario} corridors.
-              </p>
-           </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px', height: 'calc(100vh - 180px)' }}>
+            <div style={{ fontSize: '10px', fontWeight: 900, color: '#475569', marginBottom: '16px', padding: '0 8px', letterSpacing: '1px' }}>ACTIVE TRADE CORRIDORS</div>
+            <AnimatePresence mode='wait'>
+              {processedLinks.map((link, i) => (
+                <motion.div 
+                  key={`${activeScenario}-${i}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  onMouseEnter={() => {
+                    setHoveredLink(i);
+                    setMapCenter([link.positions[0][0], link.positions[0][1]]);
+                  }}
+                  onMouseLeave={() => setHoveredLink(null)}
+                  style={{ 
+                    padding: '20px', 
+                    background: hoveredLink === i ? 'rgba(99, 102, 241, 0.08)' : 'rgba(255,255,255,0.02)',
+                    border: `1px solid ${hoveredLink === i ? 'rgba(99, 102, 241, 0.4)' : 'rgba(255,255,255,0.03)'}`,
+                    borderRadius: '16px',
+                    marginBottom: '12px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {COUNTRY_COORDS[link.from] && <img src={getFlagUrl(COUNTRY_COORDS[link.from][2])} width="16" alt="flag" />}
+                      <ArrowRight size={10} color="#5a7a9a" />
+                      {COUNTRY_COORDS[link.to] && <img src={getFlagUrl(COUNTRY_COORDS[link.to][2])} width="16" alt="flag" />}
+                    </div>
+                    <div style={{ 
+                      fontSize: '9px', 
+                      fontWeight: 900, 
+                      padding: '3px 10px', 
+                      borderRadius: '6px',
+                      background: link.status === 'STABLE' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                      color: link.status === 'STABLE' ? '#22c55e' : '#ef4444',
+                      border: `1px solid ${link.status === 'STABLE' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`
+                    }}>
+                      {link.status}
+                    </div>
+                  </div>
+                  
+                  <div style={{ fontSize: '13px', fontWeight: 900, color: '#fff', marginBottom: '6px' }}>
+                    {link.from} ➔ {link.to}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    {link.type === 'AIR' && <Plane size={12} color="#6366f1" />}
+                    {link.type === 'SEA' && <Ship size={12} color="#2dd4bf" />}
+                    {link.type === 'RAIL' && <Train size={12} color="#f59e0b" />}
+                    {link.type === 'ROAD' && <Truck size={12} color="#94a3b8" />}
+                    <span style={{ fontSize: '10px', color: '#6366f1', fontWeight: 900, background: 'rgba(99, 102, 241, 0.1)', padding: '2px 8px', borderRadius: '4px' }}>{link.routeInfo}</span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div>
+                      <div style={{ fontSize: '8px', color: '#475569', fontWeight: 900, marginBottom: '2px' }}>VALUE CAP</div>
+                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#6366f1' }}>{link.value}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '8px', color: '#475569', fontWeight: 900, marginBottom: '2px' }}>NETWORK TYPE</div>
+                      <div style={{ fontSize: '10px', fontWeight: 900, color: '#fff' }}>{link.type}NET</div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+
+          {/* Tactical Feedback */}
+          <div style={{ padding: '24px', background: 'rgba(0,0,0,0.3)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f59e0b', marginBottom: '12px' }}>
+              <Activity size={14} />
+              <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '1px' }}>LIVE NETWORK PULSE</span>
+            </div>
+            <p style={{ fontSize: '11px', color: '#5a7a9a', lineHeight: '1.6', margin: 0 }}>
+              System synchronizing with **OpenStreetMap v4.2** nodes. All rail, maritime, and terrestrial corridors are currently operating under standard protocol.
+            </p>
+          </div>
         </div>
       </div>
 
       <style>{`
+        .leaflet-container {
+          background: #080c18 !important;
+        }
+        .leaflet-bar { border: none !important; }
+        .leaflet-bar a { background: #0d111d !important; color: #fff !important; border-bottom: 1px solid #1e2d4a !important; }
+        .tactical-popup .leaflet-popup-content-wrapper {
+          background: #0d111d !important;
+          color: #fff !important;
+          border: 1px solid #1e2d4a !important;
+          border-radius: 8px !important;
+        }
+        .tactical-popup .leaflet-popup-tip { background: #0d111d !important; }
         *::-webkit-scrollbar { width: 4px; }
         *::-webkit-scrollbar-track { background: transparent; }
-        *::-webkit-scrollbar-thumb { background: rgba(52, 152, 219, 0.3); borderRadius: 2px; }
+        *::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); borderRadius: 2px; }
       `}</style>
     </div>
   );
