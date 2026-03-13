@@ -30,7 +30,6 @@ const Navbar = () => {
         { name: 'Community', path: '/community' },
         { name: 'Narrative', path: '/narrative' },
         { name: 'Market', path: '/market' },
-        { name: 'Simulator', path: '/simulator' },
         { name: 'Supply Chains', path: '/supply-chains' },
         { name: 'Conflict Impact', path: '/conflict-impact' },
     ];
