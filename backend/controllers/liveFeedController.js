@@ -127,16 +127,13 @@ const GNEWS_API_KEY = "9f315d7aed8ac8d00d813968a20e9e14";
 
 const getLiveFeed = async (req, res) => {
   try {
-    // We'll use a few broad queries to get a diverse set of news
     const queries = ['war', 'conflict', 'geopolitics', 'military'];
     const query = queries.join(' OR ');
-
     const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=en&max=50&apikey=${GNEWS_API_KEY}`;
 
     const response = await axios.get(url, { timeout: 8000 });
     const articles = response.data.articles || [];
 
-    // Format for frontend
     const news = articles.map((item, idx) => {
       const title = item.title || '';
       const source = item.source?.name || 'News';
@@ -146,7 +143,7 @@ const getLiveFeed = async (req, res) => {
       const coords = COUNTRY_COORDS[country] || { lat: 20, lng: 0 };
 
       return {
-        id: idx,
+        id: `gn-${idx}`,
         time: pubDate ? new Date(pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
         ago: pubDate ? timeAgo(pubDate) : '',
         pubDate,
@@ -160,7 +157,6 @@ const getLiveFeed = async (req, res) => {
       };
     });
 
-    // Deduplicate and sort
     const seen = new Set();
     const unique = news.filter(item => {
       const key = item.text.slice(0, 70).toLowerCase();
@@ -170,33 +166,96 @@ const getLiveFeed = async (req, res) => {
     }).sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
     console.log(`[LiveFeed] Serving ${unique.length} articles from GNews`);
-    res.json({ news: unique.slice(0, 30) });
+    return res.json({ news: unique.slice(0, 30) });
 
   } catch (err) {
-    console.error('[LiveFeed] GNews Error:', err.message);
-    res.status(500).json({ error: 'Failed to fetch GNews feed', news: [] });
+    console.error('[LiveFeed] GNews Error (Falling back to RSS):', err.message);
+
+    // RSS FALLBACK
+    try {
+      const rssNews = [];
+      for (const q of FEED_QUERIES.slice(0, 3)) { // Use first few queries to keep it fast
+        const feedUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`;
+        const feed = await parser.parseURL(feedUrl);
+
+        feed.items.forEach((item, idx) => {
+          const country = detectCountry(item.title, item.content);
+          const coords = COUNTRY_COORDS[country] || { lat: 20, lng: 0 };
+          rssNews.push({
+            id: `rss-${q}-${idx}`,
+            time: item.pubDate ? new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+            ago: item.pubDate ? timeAgo(item.pubDate) : '',
+            pubDate: item.pubDate,
+            type: detectType(item.title, item.content),
+            country,
+            source: item.source || 'RSS Feed',
+            text: item.title,
+            link: item.link,
+            lat: coords.lat,
+            lng: coords.lng,
+          });
+        });
+      }
+
+      // Deduplicate and sort RSS
+      const seen = new Set();
+      const uniqueRss = rssNews.filter(item => {
+        const key = item.text.slice(0, 70).toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+      console.log(`[LiveFeed] Serving ${uniqueRss.length} articles from RSS Fallback`);
+      return res.json({ news: uniqueRss.slice(0, 30) });
+    } catch (rssErr) {
+      console.error('[LiveFeed] RSS Fallback Failed:', rssErr.message);
+      res.status(500).json({ error: 'All news sources failed', news: [] });
+    }
   }
 };
 
 const getLiveInsights = async (req, res) => {
+  let newsItems = [];
   try {
     const url = `https://gnews.io/api/v4/search?q=geopolitics%20OR%20war&lang=en&max=20&apikey=${GNEWS_API_KEY}`;
     const response = await axios.get(url, { timeout: 8000 });
     const articles = response.data.articles || [];
+    newsItems = articles.map(a => ({ text: a.title, country: detectCountry(a.title, a.description) }));
+  } catch (err) {
+    console.warn('[LiveInsights] GNews failed, attempting RSS extraction for insights:', err.message);
+    try {
+      const q = 'geopolitical war conflict major events';
+      const feedUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`;
+      const feed = await parser.parseURL(feedUrl);
+      newsItems = feed.items.slice(0, 15).map(item => ({
+        text: item.title,
+        country: detectCountry(item.title, item.content)
+      }));
+    } catch (rssErr) {
+      console.error('[LiveInsights] RSS fallback also failed:', rssErr.message);
+    }
+  }
 
-    // Map articles to simple format for Groq
-    const newsItems = articles.map(a => ({ text: a.title, country: detectCountry(a.title, a.description) }));
+  try {
+    if (newsItems.length === 0) {
+      return res.json({
+        briefingTitle: "DAILY GEOPOLITICAL BRIEFING",
+        summary: "Analytical engine recalibrating. Live intelligence streams are currently being rerouted due to high volume. Strategic clarity pending.",
+        majorEvents: [
+          { event: "Monitoring Global Systems", impact: "Systemic stability check in progress." }
+        ]
+      });
+    }
+
     const insights = await generateLiveInsights(newsItems);
-
     res.json(insights || {
       briefingTitle: "DAILY GEOPOLITICAL BRIEFING",
-      summary: "Analytical engine recalibrating. Critical signals being synthesized from live intelligence streams.",
-      majorEvents: [
-        { event: "Data synthesis in progress", impact: "Strategic clarity pending further processing." }
-      ]
+      summary: "Analytical engine recalibrating. Critical signals being synthesized from available intelligence streams.",
+      majorEvents: [{ event: "Data synthesis in progress", impact: "Strategic clarity pending further processing." }]
     });
   } catch (err) {
-    console.error("Insights API Error:", err);
+    console.error("Insights Generation Error:", err);
     res.status(500).json({ error: "Failed to generate insights" });
   }
 };

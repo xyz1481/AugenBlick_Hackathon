@@ -4,7 +4,7 @@ const GlobalMonitor = lazy(() => import('../components/ConflictGlobe'));
 
 const Home = () => {
   return (
-    <div style={{ width: '100%', height: '100vh', background: '#0a0f1e', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '100%', background: '#0a0f1e', overflow: 'hidden' }}>
       <Suspense fallback={
         <div style={{
           width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column',
