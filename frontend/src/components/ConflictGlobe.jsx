@@ -622,57 +622,82 @@ export default function ConflictGlobe() {
                   LIVE
                 </span>
               </div>
-              <select
-                value={selectedRegion}
-                onChange={(e) => setSelectedRegion(e.target.value)}
-                style={{
-                  background: "transparent",
-                  color: "#fff",
-                  border: "none",
-                  fontSize: "12px",
-                  fontWeight: "800",
-                  outline: "none",
-                  cursor: "pointer",
-                }}
-              >
-                <option
-                  value="Global"
-                  style={{ background: "#0d1527", color: "#fff" }}
-                >
-                  Global
-                </option>
-                <option
-                  value="Asia"
-                  style={{ background: "#0d1527", color: "#fff" }}
-                >
-                  Asia
-                </option>
-                <option
-                  value="Europe"
-                  style={{ background: "#0d1527", color: "#fff" }}
-                >
-                  Europe
-                </option>
-                <option
-                  value="Americas"
-                  style={{ background: "#0d1527", color: "#fff" }}
-                >
-                  Americas
-                </option>
-              </select>
+
+
+
             </div>
           </div>
 
-          {/* CENTER: Tactical Stats (DEFCON) */}
+          {/* CENTER: Time & 2D/3D Toggle */}
           <div
             style={{
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              gap: "20px",
+              gap: "24px",
               flex: 1,
             }}
           >
+            <div
+              style={{
+                fontSize: "11px",
+                color: "#5a7a9a",
+                fontWeight: "800",
+                letterSpacing: "1.5px",
+                background: "rgba(255,255,255,0.03)",
+                padding: "6px 16px",
+                borderRadius: "20px",
+                border: "1px solid rgba(255,255,255,0.05)",
+              }}
+            >
+              {new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).toUpperCase()} IST
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                background: "rgba(10,15,30,0.8)",
+                padding: "4px",
+                borderRadius: "8px",
+                border: "1px solid #1e2d4a",
+                gap: "4px",
+              }}
+            >
+              <button
+                onClick={() => setProjection("2d")}
+                style={{
+                  background: projection === "2d" ? "#2ecc71" : "transparent",
+                  border: "none",
+                  borderRadius: "6px",
+                  color: projection === "2d" ? "#000" : "#5a7a9a",
+                  padding: "4px 12px",
+                  fontSize: "10px",
+                  fontWeight: "900",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                  zIndex: 10,
+                }}
+              >
+                2D
+              </button>
+              <button
+                onClick={() => setProjection("3d")}
+                style={{
+                  background: projection === "3d" ? "#2ecc71" : "transparent",
+                  border: "none",
+                  borderRadius: "6px",
+                  color: projection === "3d" ? "#000" : "#5a7a9a",
+                  padding: "4px 12px",
+                  fontSize: "10px",
+                  fontWeight: "900",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                  zIndex: 10,
+                }}
+              >
+                3D
+              </button>
+            </div>
           </div>
 
           {/* RIGHT: Search & System Controls */}
@@ -722,69 +747,6 @@ export default function ConflictGlobe() {
               }}
             />
           </div>
-        </div>
-      </div>
-
-      {/* --- SECONDARY INFO BAR --- */}
-      <div
-        style={{
-          height: "36px",
-          background: "#0a1020",
-          borderBottom: "1px solid #1e2d4a",
-          display: "flex",
-          alignItems: "center",
-          padding: "0 24px",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          style={{
-            fontSize: "11px",
-            color: "#5a7a9a",
-            fontWeight: "800",
-            letterSpacing: "1px",
-          }}
-        >
-          {new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).toUpperCase()} IST
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            right: "24px",
-            display: "flex",
-            gap: "8px",
-          }}
-        >
-          <button
-            onClick={() => setProjection("2d")}
-            style={{
-              background: projection === "2d" ? "#2ecc71" : "#1e2d4a",
-              border: "none",
-              borderRadius: "4px",
-              color: "#fff",
-              padding: "2px 8px",
-              fontSize: "10px",
-              fontWeight: "900",
-              cursor: "pointer",
-            }}
-          >
-            2D
-          </button>
-          <button
-            onClick={() => setProjection("3d")}
-            style={{
-              background: projection === "3d" ? "#2ecc71" : "#1e2d4a",
-              border: "none",
-              borderRadius: "4px",
-              color: "#fff",
-              padding: "2px 8px",
-              fontSize: "10px",
-              fontWeight: "900",
-              cursor: "pointer",
-            }}
-          >
-            3D
-          </button>
         </div>
       </div>
 
