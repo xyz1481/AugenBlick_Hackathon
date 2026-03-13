@@ -34,6 +34,7 @@ const Navbar = () => {
         { name: 'Narrative', path: '/narrative' },
         { name: 'Market', path: '/market' },
         { name: 'Supply Chains', path: '/supply-chains' },
+        { name: 'Impact Analyzer', path: '/dashboard' },
         { name: 'Conflict Impact', path: '/conflict-impact' },
     ];
 

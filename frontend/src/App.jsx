@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
@@ -18,6 +19,23 @@ import Login from "./pages/Login";
 import IntelAgent from "./pages/IntelAgent";
 import ConflictAnalyzer from "./pages/ConflictAnalyzer";
 import CommunityPage from "./pages/CommunityPage";
+=======
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, Link } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Narrative from './pages/Narrative';
+import Simulator from './pages/Simulator';
+import SupplyChains from './pages/SupplyChains';
+import Market from './pages/Market';
+import Signup from './pages/Signup';
+import Login from './pages/Login';
+import IntelAgent from './pages/IntelAgent';
+import ConflictAnalyzer from './pages/ConflictAnalyzer';
+import CommunityPage from './pages/CommunityPage';
+import Dashboard from './pages/Dashboard';
+
+>>>>>>> Stashed changes
 
 const AuthGate = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -92,6 +110,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Home />} />
 
+<<<<<<< Updated upstream
           <Route
             path="/narrative"
             element={
@@ -148,6 +167,16 @@ function AppContent() {
               </AuthGate>
             }
           />
+=======
+          <Route path="/narrative" element={<AuthGate><Narrative /></AuthGate>} />
+          <Route path="/simulator" element={<AuthGate><Simulator /></AuthGate>} />
+          <Route path="/conflict-impact" element={<AuthGate><ConflictAnalyzer /></AuthGate>} />
+          <Route path="/supply-chains" element={<AuthGate><SupplyChains /></AuthGate>} />
+          <Route path="/market" element={<AuthGate><Market /></AuthGate>} />
+          <Route path="/intel-agent" element={<AuthGate><IntelAgent /></AuthGate>} />
+          <Route path="/dashboard" element={<AuthGate><Dashboard /></AuthGate>} />
+          <Route path="/community" element={<AuthGate><CommunityPage /></AuthGate>} />
+>>>>>>> Stashed changes
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
         </Routes>

@@ -47,9 +47,12 @@ import GLOBAL_INTEL from "../data/globalIntel.json";
 import API_BASE_URL from "../api/config";
 import { AiInsightsCard } from "./AiInsightsCard";
 import WidgetPanel from "./WidgetPanel";
+<<<<<<< Updated upstream
 import GlobalStabilityPanel from "./GlobalStabilityPanel";
 import MarketAnalysisPanel from "./MarketAnalysisPanel";
 
+=======
+>>>>>>> Stashed changes
 
 // --- DATA DEFINITIONS ---
 
@@ -1269,8 +1272,12 @@ export default function ConflictGlobe() {
             zIndex: 1,
           }}
         >
+<<<<<<< Updated upstream
           {/* High-level stability & impact dashboard integrated in right sidebar */}
 
+=======
+          {/* High-level stability & impact dashboard overlay removed */}
+>>>>>>> Stashed changes
           <AnimatePresence mode="wait">
             {projection === "3d" ? (
               <motion.div
