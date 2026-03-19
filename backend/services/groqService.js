@@ -139,7 +139,7 @@ const verifyClaim = async (claim, newsSignals = []) => {
 
 const generateLiveInsights = async (newsItems) => {
   // User-provided direct API key for insights
-  const insightsApiKey = "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";
+  const insightsApiKey = process.env.GROQ_API_KEY2 || process.env.GROQ_API_KEY;
   const insightsGroq = new Groq({ apiKey: insightsApiKey });
 
   try {
@@ -178,4 +178,58 @@ const generateLiveInsights = async (newsItems) => {
   }
 };
 
-module.exports = { generateIntelReport, moderateContent, verifyClaim, generateLiveInsights };
+const generateMarketAnalysis = async (marketData) => {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY is missing in backend .env file.");
+  }
+
+  try {
+    const dataContext = JSON.stringify(marketData);
+    const prompt = `
+      You are Reality AI, a macro-financial intelligence system.
+      Analyze the following live market data and provide strategic projections.
+      
+      Live Market Context:
+      ${dataContext}
+
+      Your task:
+      1. Provide a "Current Market Sentiment" summary (2-3 sentences).
+      2. Provide a "Conflict Scenario Projection": If a major regional war or conflict escalates (e.g., in the Middle East, South China Sea, or Eastern Europe), how will these specific assets react?
+      3. Identify "Critical Risks" for the next 30 days.
+      4. Suggest "Stability Hedges" (assets or strategies).
+
+      Output Requirements (JSON format):
+      {
+        "sentiment": "String",
+        "conflictProjection": "String (specifically focusing on war/conflict outcomes)",
+        "risks": ["Array of strings"],
+        "hedges": ["Array of strings"],
+        "panicLevel": "Low | Elevated | High | Extreme",
+        "panicIndex": "Number (0-100, calculate base on VIX/Indices volatility)"
+      }
+
+      Tone: Rigorous, high-finance, signal-oriented. Remove conversational fluff.
+    `;
+
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.4,
+      response_format: { type: "json_object" },
+    });
+
+    return JSON.parse(chatCompletion.choices[0]?.message?.content);
+  } catch (error) {
+    console.error("Market Analysis Error:", error);
+    return null;
+  }
+};
+
+module.exports = { 
+  generateIntelReport, 
+  moderateContent, 
+  verifyClaim, 
+  generateLiveInsights, 
+  generateMarketAnalysis 
+};
+

@@ -33,6 +33,7 @@ app.use('/api/stability', require('./routes/stabilityRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
 app.use('/api/systems', require('./routes/systemsRoutes'));
 app.use('/api/domino', require('./routes/dominoRoutes'));
+app.use('/api/intelligence', require('./routes/intelligenceRoutes'));
 app.use('/api/stability', require('./routes/stabilityRoutes'));
 
 app.get('/', (req, res) => {

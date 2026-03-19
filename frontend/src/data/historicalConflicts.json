@@ -1,5 +1,105 @@
 [
   {
+    "lat": 12.9,
+    "lng": 74.8,
+    "type": "protest",
+    "country": "India",
+    "title": "Mangaluru Protests — CAA",
+    "news": "Anti-CAA protests in Mangaluru turn violent; police fire on protesters, killing two.",
+    "year": 2020,
+    "date": "2020-01-19"
+  },
+  {
+    "lat": 33.3,
+    "lng": 44.4,
+    "type": "missile",
+    "country": "Iraq",
+    "title": "Rocket Attacks on Baghdad Green Zone",
+    "news": "Iran-backed militia groups fire salvos of Katyusha rockets into Baghdad's International Zone, targeting US Embassy and military facilities.",
+    "year": 2020,
+    "date": "2020-03-11"
+  },
+  {
+    "lat": 34.5,
+    "lng": 76.5,
+    "type": "military",
+    "country": "India",
+    "title": "Galwan Valley Clash — India vs China",
+    "news": "Indian and Chinese soldiers engage in deadly hand-to-hand combat in the Galwan Valley, Ladakh. 20 Indian soldiers killed. India bans 59 Chinese apps and restricts Chinese investment.",
+    "year": 2020,
+    "date": "2020-06-15"
+  },
+  {
+    "lat": 24.9,
+    "lng": 67.0,
+    "type": "terrorism",
+    "country": "Pakistan",
+    "title": "Karachi Stock Exchange Attack",
+    "news": "Baloch Liberation Army gunmen attack Pakistan Stock Exchange, killing security personnel.",
+    "year": 2020,
+    "date": "2020-06-29"
+  },
+  {
+    "lat": 22.3,
+    "lng": 114.2,
+    "type": "political",
+    "country": "Hong Kong",
+    "title": "Hong Kong National Security Law",
+    "news": "Beijing imposes sweeping National Security Law on Hong Kong, effectively ending 'one country, two systems'.",
+    "year": 2020,
+    "date": "2020-06-30"
+  },
+  {
+    "lat": 53.9,
+    "lng": 27.5,
+    "type": "protest",
+    "country": "Belarus",
+    "title": "Belarus Mass Protests — Lukashenko",
+    "news": "Hundreds of thousands protest rigged election results in Minsk. Lukashenko clamps down with mass arrests.",
+    "year": 2020,
+    "date": "2020-08-09"
+  },
+  {
+    "lat": 33.7,
+    "lng": 75.9,
+    "type": "military",
+    "country": "India",
+    "title": "LAC Standoff — Pangong Lake",
+    "news": "Chinese PLA troops occupy contested ridgelines along the Line of Actual Control near Pangong Tso lake. Indian Army deploys additional brigades; both sides hold months-long face-off.",
+    "year": 2020,
+    "date": "2020-08-31"
+  },
+  {
+    "lat": 40.1,
+    "lng": 47.5,
+    "type": "military",
+    "country": "Nagorno-Karabakh",
+    "title": "Azerbaijan-Armenia War",
+    "news": "Azerbaijan launches full military offensive to retake Nagorno-Karabakh. Airspace over the conflict zone closed; drone warfare including Turkish Bayraktar TB2s reshapes the battlefield.",
+    "year": 2020,
+    "date": "2020-09-27"
+  },
+  {
+    "lat": 17.3,
+    "lng": 102.0,
+    "type": "protest",
+    "country": "Thailand",
+    "title": "Thailand Pro-Democracy Protests",
+    "news": "Mass protests in Bangkok demanding constitutional reform and limits on royal prerogative — unprecedented in Thai history.",
+    "year": 2020,
+    "date": "2020-10-14"
+  },
+  {
+    "lat": 32.7,
+    "lng": 74.8,
+    "type": "terrorism",
+    "country": "India",
+    "title": "Nagrota Terror Attack",
+    "news": "Pakistani militants infiltrate and attack an Indian Army convoy near Nagrota in Jammu. Four militants and two soldiers killed in extended gunfight near a highway toll plaza.",
+    "year": 2020,
+    "date": "2020-11-19"
+  },
+  {
     "lat": 26.6,
     "lng": 56.5,
     "type": "blockade",
@@ -10,12 +110,892 @@
     "date": "2021-01-04"
   },
   {
+    "lat": 24.7,
+    "lng": 46.7,
+    "type": "political",
+    "country": "Saudi Arabia",
+    "title": "Saudi-Qatar Airspace Reopened",
+    "news": "Saudi Arabia, UAE, Bahrain and Egypt lift the 3.5-year air blockade against Qatar, reopening airspace and restoring diplomatic ties at the Al-Ula summit.",
+    "year": 2021,
+    "date": "2021-01-05"
+  },
+  {
+    "lat": 38.9,
+    "lng": 77.1,
+    "type": "political",
+    "country": "USA",
+    "title": "US Capitol Insurrection",
+    "news": "Supporters of President Trump storm the US Capitol building attempting to halt certification of election results.",
+    "year": 2021,
+    "date": "2021-01-06"
+  },
+  {
+    "lat": 6.3,
+    "lng": 20.4,
+    "type": "terrorism",
+    "country": "Central African Republic",
+    "title": "CAR Armed Groups Offensive",
+    "news": "Coalition of armed rebel groups launches coordinated offensive threatening Bangui. Russian Wagner Group mercenaries deployed to support government forces.",
+    "year": 2021,
+    "date": "2021-01-13"
+  },
+  {
+    "lat": 28.6,
+    "lng": 77.2,
+    "type": "protest",
+    "country": "India",
+    "title": "Farmers Siege of Delhi — Republic Day Violence",
+    "news": "Tens of thousands of protesting farmers breach police barriers and storm the Red Fort during Republic Day celebrations. Clashes across Delhi; internet shut down in border zones.",
+    "year": 2021,
+    "date": "2021-01-26"
+  },
+  {
+    "lat": 24.0,
+    "lng": 90.0,
+    "type": "political",
+    "country": "Myanmar",
+    "title": "Myanmar Military Coup",
+    "news": "Myanmar military seizes power in coup, arresting Aung San Suu Kyi. Yangon International Airport temporarily closed; internet and communications blacked out nationwide.",
+    "year": 2021,
+    "date": "2021-02-01"
+  },
+  {
+    "lat": 29.9,
+    "lng": 78.1,
+    "type": "political",
+    "country": "India",
+    "title": "Uttarakhand Glacial Burst",
+    "news": "Glacial lake burst in Chamoli sends flash floods through Rishiganga valley, killing 200+ and destroying dams.",
+    "year": 2021,
+    "date": "2021-02-07"
+  },
+  {
+    "lat": 34.1,
+    "lng": 77.6,
+    "type": "military",
+    "country": "India",
+    "title": "India-China Disengage at Pangong",
+    "news": "India and China reach disengagement agreement at Pangong Tso after months of standoff. Both sides pull back tanks and troops from contested north and south bank positions.",
+    "year": 2021,
+    "date": "2021-02-11"
+  },
+  {
+    "lat": 13.5,
+    "lng": 2.1,
+    "type": "terrorism",
+    "country": "Niger",
+    "title": "Jihadist Attacks Escalate in Niger",
+    "news": "ISIS-affiliated groups intensify attacks in western Niger near the Malian border, killing hundreds of civilians and displacing over 200,000 people.",
+    "year": 2021,
+    "date": "2021-03-21"
+  },
+  {
+    "lat": 30.9,
+    "lng": 32.3,
+    "type": "blockade",
+    "country": "Suez Canal",
+    "title": "Ever Given Blocks Suez Canal",
+    "news": "Container ship Ever Given runs aground in the Suez Canal, blocking passage for 6 days and causing a global supply chain crisis affecting an estimated $9.6 billion in daily trade.",
+    "year": 2021,
+    "date": "2021-03-23"
+  },
+  {
+    "lat": 20.9,
+    "lng": 85.1,
+    "type": "terrorism",
+    "country": "India",
+    "title": "Maoist Ambush — Chhattisgarh",
+    "news": "Naxalite Maoist rebels detonate IEDs and ambush a security forces convoy in Dantewada, Chhattisgarh, killing 22 personnel including District Reserve Guard members.",
+    "year": 2021,
+    "date": "2021-04-03"
+  },
+  {
+    "lat": 19.0,
+    "lng": 82.0,
+    "type": "terrorism",
+    "country": "India",
+    "title": "Bijapur Maoist Attack",
+    "news": "CPI (Maoist) ambush kills 22 security personnel in Bijapur, Chhattisgarh — one of the deadliest Naxal attacks in years. Forces were on a joint search operation in dense forest.",
+    "year": 2021,
+    "date": "2021-04-03"
+  },
+  {
+    "lat": 33.5,
+    "lng": 36.3,
+    "type": "missile",
+    "country": "Syria",
+    "title": "Israeli Airstrikes on Damascus Suburbs",
+    "news": "Israeli Air Force conducts extensive airstrikes on Iranian weapons depots and Hezbollah supply routes near Damascus.",
+    "year": 2021,
+    "date": "2021-04-22"
+  },
+  {
+    "lat": -17.7,
+    "lng": 35.0,
+    "type": "terrorism",
+    "country": "Mozambique",
+    "title": "Mozambique LNG Security Crisis",
+    "news": "TotalEnergies suspends Mozambique LNG project as Islamist insurgency overruns the Afungi peninsula.",
+    "year": 2021,
+    "date": "2021-04-26"
+  },
+  {
+    "lat": 36.5,
+    "lng": 43.0,
+    "type": "terrorism",
+    "country": "Syria/Iraq",
+    "title": "ISIS Resurgence — Desert Attacks",
+    "news": "ISIS intensifies hit-and-run attacks in the Syrian desert and western Iraq, killing hundreds of Syrian soldiers.",
+    "year": 2021,
+    "date": "2021-05-01"
+  },
+  {
+    "lat": 22.5,
+    "lng": 88.3,
+    "type": "protest",
+    "country": "India",
+    "title": "Kolkata Political Violence — BJP vs TMC",
+    "news": "Post-election violence erupts in West Bengal following TMC's landslide victory. Multiple deaths reported; BJP and TMC workers clash across multiple districts. NHRC probe ordered.",
+    "year": 2021,
+    "date": "2021-05-03"
+  },
+  {
+    "lat": 51.5,
+    "lng": 28.0,
+    "type": "political",
+    "country": "Belarus",
+    "title": "Belarus Forces Ryanair Diversion",
+    "news": "Belarus scrambles a MiG-29 fighter jet to force Ryanair flight FR4978 to land in Minsk to arrest dissident journalist Roman Protasevich. EU bans Belarusian carriers.",
+    "year": 2021,
+    "date": "2021-05-23"
+  },
+  {
+    "lat": 11.8,
+    "lng": -15.2,
+    "type": "political",
+    "country": "Mali",
+    "title": "Mali Second Coup",
+    "news": "Mali's transitional government overthrown in second coup in nine months. Col. Assimi Goïta declares himself president.",
+    "year": 2021,
+    "date": "2021-05-24"
+  },
+  {
+    "lat": 11.5,
+    "lng": 15.0,
+    "type": "terrorism",
+    "country": "Nigeria",
+    "title": "ISWAP Surge — Lake Chad Basin",
+    "news": "ISWAP overruns several Nigerian military bases in the Lake Chad Basin, killing dozens of troops.",
+    "year": 2021,
+    "date": "2021-06-10"
+  },
+  {
+    "lat": 32.5,
+    "lng": 75.9,
+    "type": "terrorism",
+    "country": "India",
+    "title": "Jammu Air Force Base Drone Attack",
+    "news": "Two explosive-laden drones strike the Indian Air Force Station in Jammu — the first ever drone attack on an Indian military installation. Pakistan-based groups suspected.",
+    "year": 2021,
+    "date": "2021-06-27"
+  },
+  {
+    "lat": 15.3,
+    "lng": 38.9,
+    "type": "military",
+    "country": "Ethiopia",
+    "title": "Tigray War Airspace Closure",
+    "news": "Armed conflict in Ethiopia's Tigray region escalates. Ethiopian airspace partially restricted as fighting spreads. UN reports widespread atrocities and humanitarian blockade.",
+    "year": 2021,
+    "date": "2021-06-28"
+  },
+  {
+    "lat": 33.5,
+    "lng": 74.3,
+    "type": "terrorism",
+    "country": "India",
+    "title": "Sopore Bus Attack — CRPF Ambush",
+    "news": "Militants ambush a CRPF bus in Sopore, Jammu & Kashmir, killing one trooper and a civilian. Militant fire directed from rooftops in a densely populated civilian area.",
+    "year": 2021,
+    "date": "2021-07-01"
+  },
+  {
+    "lat": 19.0,
+    "lng": -72.3,
+    "type": "political",
+    "country": "Haiti",
+    "title": "Haiti President Assassinated",
+    "news": "Haitian President Jovenel Moïse assassinated at his private residence. Port-au-Prince falls into gang-controlled chaos; Toussaint Louverture airport repeatedly closed.",
+    "year": 2021,
+    "date": "2021-07-07"
+  },
+  {
+    "lat": -34.0,
+    "lng": 18.5,
+    "type": "protest",
+    "country": "South Africa",
+    "title": "Zuma Unrest — KwaZulu-Natal",
+    "news": "Arrest of former President Zuma triggers mass looting and violence in KwaZulu-Natal, killing 300+.",
+    "year": 2021,
+    "date": "2021-07-09"
+  },
+  {
+    "lat": 28.2,
+    "lng": 83.9,
+    "type": "political",
+    "country": "Nepal",
+    "title": "Nepal Political Crisis",
+    "news": "Nepal's Supreme Court dissolves parliament for second time as PM Deuba ousts Oli in a dramatic power reversal.",
+    "year": 2021,
+    "date": "2021-07-12"
+  },
+  {
+    "lat": 31.5,
+    "lng": 65.8,
+    "type": "military",
+    "country": "Afghanistan",
+    "title": "Taliban Offensive — Multiple Provinces Fall",
+    "news": "Taliban sweep across Afghanistan at breathtaking speed, capturing provincial capitals before taking Kabul.",
+    "year": 2021,
+    "date": "2021-08-06"
+  },
+  {
+    "lat": 13.5,
+    "lng": 2.2,
+    "type": "terrorism",
+    "country": "Niger",
+    "title": "Niger Massacre — Tillabéri",
+    "news": "Jihadist gunmen kill 137 civilians in Tillabéri region — one of the deadliest mass killings in Niger's history.",
+    "year": 2021,
+    "date": "2021-08-09"
+  },
+  {
+    "lat": 34.5,
+    "lng": 69.2,
+    "type": "military",
+    "country": "Afghanistan",
+    "title": "Taliban Takes Kabul",
+    "news": "Taliban forces capture Kabul and seize control of Afghanistan. Hamid Karzai International Airport overwhelmed during chaotic US-led evacuation, airspace temporarily closed to civilian traffic.",
+    "year": 2021,
+    "date": "2021-08-15"
+  },
+  {
+    "lat": 12.0,
+    "lng": -15.5,
+    "type": "political",
+    "country": "Guinea",
+    "title": "Guinea Military Coup",
+    "news": "Special Forces soldiers seize power in Guinea, arresting President Alpha Condé and dissolving the government.",
+    "year": 2021,
+    "date": "2021-09-05"
+  },
+  {
+    "lat": 46.0,
+    "lng": 14.5,
+    "type": "political",
+    "country": "Belarus",
+    "title": "EU-Belarus Border Crisis",
+    "news": "Belarus deliberately routes migrants to Polish and Lithuanian borders in hybrid warfare against EU member states.",
+    "year": 2021,
+    "date": "2021-10-01"
+  },
+  {
+    "lat": 15.5,
+    "lng": 32.5,
+    "type": "political",
+    "country": "Sudan",
+    "title": "Sudan Coup — Al-Bashir Ousted",
+    "news": "Sudanese military ousts long-time president Omar al-Bashir amid mass protests. Transitional Sovereignty Council takes power amid ongoing instability.",
+    "year": 2021,
+    "date": "2021-10-25"
+  },
+  {
+    "lat": 15.6,
+    "lng": 32.5,
+    "type": "political",
+    "country": "Sudan",
+    "title": "Sudan Coup — Al-Bashir Ousted",
+    "news": "Sudanese military ousts President Omar al-Bashir amid mass protests. Transitional Sovereignty Council takes power.",
+    "year": 2021,
+    "date": "2021-10-25"
+  },
+  {
+    "lat": 13.0,
+    "lng": 77.6,
+    "type": "protest",
+    "country": "India",
+    "title": "Hijab Ban Protests — Karnataka",
+    "news": "Mass protests erupt across Karnataka after government colleges ban hijab. Clashes between student groups; Section 144 prohibitory orders imposed in multiple districts.",
+    "year": 2022,
+    "date": "2022-02-08"
+  },
+  {
+    "lat": 48.5,
+    "lng": 32.0,
+    "type": "military",
+    "country": "Ukraine",
+    "title": "Russia Invades Ukraine",
+    "news": "Russia launches full-scale military invasion of Ukraine across multiple fronts. Airspace closed to commercial aviation across Ukraine, Belarus, and parts of Russia, triggering mass rerouting of European-Asian flights.",
+    "year": 2022,
+    "date": "2022-02-24"
+  },
+  {
+    "lat": 60.0,
+    "lng": 57.0,
+    "type": "economic",
+    "country": "Russia",
+    "title": "Russia Airspace Closed to West",
+    "news": "Russia closes its airspace to 36 countries in retaliation for sanctions following the Ukraine invasion, forcing European carriers to add 3–5 hours to Asia-Pacific routes.",
+    "year": 2022,
+    "date": "2022-03-01"
+  },
+  {
+    "lat": 37.9,
+    "lng": 58.4,
+    "type": "terrorism",
+    "country": "Central Asia",
+    "title": "ISIS-K Attacks in Central Asia Surge",
+    "news": "ISIS-Khorasan expands operations into Central Asian states, conducting cross-border attacks from Afghanistan.",
+    "year": 2022,
+    "date": "2022-03-20"
+  },
+  {
+    "lat": 9.0,
+    "lng": 7.5,
+    "type": "terrorism",
+    "country": "Nigeria",
+    "title": "Nigeria Kaduna Train Attack",
+    "news": "Boko Haram-linked militants detonate bomb on Kaduna-Abuja rail line and abduct passengers.",
+    "year": 2022,
+    "date": "2022-03-28"
+  },
+  {
+    "lat": 33.8,
+    "lng": 74.9,
+    "type": "terrorism",
+    "country": "India",
+    "title": "Shopian Militant Ambush — Kashmir",
+    "news": "Militants ambush Indian Army patrol in Shopian district of Kashmir, killing three soldiers. Security forces launch massive cordon-and-search operation across the valley.",
+    "year": 2022,
+    "date": "2022-04-02"
+  },
+  {
+    "lat": 33.6,
+    "lng": 73.1,
+    "type": "political",
+    "country": "Pakistan",
+    "title": "Pakistan PM Imran Khan Removed",
+    "news": "Pakistan PM Imran Khan ousted in no-confidence vote — first ever removal of a Pakistani PM this way.",
+    "year": 2022,
+    "date": "2022-04-10"
+  },
+  {
+    "lat": 68.0,
+    "lng": 15.0,
+    "type": "military",
+    "country": "Norway",
+    "title": "Svalbard Tensions — Russia",
+    "news": "Russia objects to Norway tightening Svalbard access for Russian citizens, raising NATO Arctic tensions.",
+    "year": 2022,
+    "date": "2022-05-01"
+  },
+  {
+    "lat": 59.9,
+    "lng": 10.7,
+    "type": "political",
+    "country": "Norway",
+    "title": "Nordic NATO Expansion — Sweden & Finland",
+    "news": "Finland and Sweden formally apply to join NATO, abandoning decades of military non-alignment after Russia's invasion of Ukraine.",
+    "year": 2022,
+    "date": "2022-05-18"
+  },
+  {
+    "lat": 1.3,
+    "lng": 103.8,
+    "type": "economic",
+    "country": "Strait of Malacca",
+    "title": "Malacca Piracy Alert Elevated",
+    "news": "Regional Coast Guard authorities raise piracy threat level in the Strait of Malacca following a spike in armed robberies targeting anchored tankers.",
+    "year": 2022,
+    "date": "2022-06-10"
+  },
+  {
+    "lat": 42.7,
+    "lng": 18.0,
+    "type": "military",
+    "country": "Bosnia",
+    "title": "Bosnia Political Crisis — Republika Srpska",
+    "news": "RS leader Milorad Dodik threatens to withdraw from joint institutions, risking fragmentation of Bosnia's peace architecture.",
+    "year": 2022,
+    "date": "2022-07-01"
+  },
+  {
+    "lat": 7.5,
+    "lng": 80.5,
+    "type": "political",
+    "country": "Sri Lanka",
+    "title": "Sri Lanka Economic Collapse — President Flees",
+    "news": "Protesters storm the presidential palace as economy collapses. President Rajapaksa flees to Maldives.",
+    "year": 2022,
+    "date": "2022-07-09"
+  },
+  {
+    "lat": 23.6,
+    "lng": 121.0,
+    "type": "military",
+    "country": "Taiwan Strait",
+    "title": "China PLA Taiwan Strait Drills",
+    "news": "China conducts unprecedented military encirclement exercises around Taiwan following Nancy Pelosi's visit, simulating blockade with live-fire drills and airspace incursions.",
+    "year": 2022,
+    "date": "2022-08-04"
+  },
+  {
+    "lat": 48.0,
+    "lng": 37.5,
+    "type": "military",
+    "country": "Ukraine",
+    "title": "Ukraine Zaporizhzhia Nuclear Plant Shelled",
+    "news": "Europe's largest nuclear plant at Zaporizhzhia repeatedly shelled, raising Chernobyl-scale catastrophe fears. IAEA deploys monitors.",
+    "year": 2022,
+    "date": "2022-08-05"
+  },
+  {
+    "lat": 29.5,
+    "lng": 57.5,
+    "type": "nuclear",
+    "country": "Iran",
+    "title": "Iran Nuclear Deal Collapses",
+    "news": "JCPOA talks in Vienna collapse as Iran rejects key US demands. Iran accelerates uranium enrichment beyond agreed limits.",
+    "year": 2022,
+    "date": "2022-08-15"
+  },
+  {
+    "lat": 37.9,
+    "lng": 23.7,
+    "type": "political",
+    "country": "Greece",
+    "title": "Greece-Turkey Aegean Tensions",
+    "news": "Greek and Turkish fighter jets engage in dogfights over disputed Aegean airspace as Erdogan threatens Greek islands.",
+    "year": 2022,
+    "date": "2022-08-28"
+  },
+  {
+    "lat": 23.0,
+    "lng": 92.9,
+    "type": "military",
+    "country": "India",
+    "title": "Mizoram — Myanmar Refugee Crisis",
+    "news": "Thousands of Myanmar refugees including soldiers fleeing the civil war cross into India's Mizoram state. Indian Border Security Force deployed along porous border amid tensions.",
+    "year": 2022,
+    "date": "2022-09-05"
+  },
+  {
+    "lat": 49.5,
+    "lng": 34.6,
+    "type": "military",
+    "country": "Ukraine",
+    "title": "Ukraine Kharkiv Counteroffensive",
+    "news": "Ukraine recaptures over 8,000 sq km of territory in Kharkiv Oblast in a surprise rapid offensive, routing Russian forces.",
+    "year": 2022,
+    "date": "2022-09-10"
+  },
+  {
+    "lat": 35.5,
+    "lng": 51.4,
+    "type": "protest",
+    "country": "Iran",
+    "title": "Mahsa Amini Protests",
+    "news": "Nationwide protests erupt in Iran after Mahsa Amini is killed by morality police for wearing hijab 'improperly'. Dozens killed.",
+    "year": 2022,
+    "date": "2022-09-16"
+  },
+  {
+    "lat": 55.0,
+    "lng": 15.0,
+    "type": "naval",
+    "country": "Baltic Sea",
+    "title": "Baltic Pipeline Sabotage",
+    "news": "Underwater explosions destroy Nord Stream 1 and Nord Stream 2 natural gas pipelines in the Baltic Sea near Bornholm Island, disrupting European energy infrastructure.",
+    "year": 2022,
+    "date": "2022-09-26"
+  },
+  {
+    "lat": 18.5,
+    "lng": -72.3,
+    "type": "political",
+    "country": "Haiti",
+    "title": "Haiti Gangs Blockade Capital",
+    "news": "Gang alliance G9 blockades the Varreux fuel terminal in Port-au-Prince, crippling the country's fuel supply and triggering a humanitarian crisis.",
+    "year": 2022,
+    "date": "2022-10-08"
+  },
+  {
+    "lat": 46.5,
+    "lng": 33.0,
+    "type": "military",
+    "country": "Ukraine",
+    "title": "Ukraine Strikes Kerch Bridge",
+    "news": "Ukraine attacks the Kerch Bridge linking Russia to Crimea with a truck bomb, causing partial collapse and disrupting Russian logistics.",
+    "year": 2022,
+    "date": "2022-10-08"
+  },
+  {
+    "lat": 18.5,
+    "lng": 82.5,
+    "type": "terrorism",
+    "country": "India",
+    "title": "Maoists Kill 10 — Chhattisgarh",
+    "news": "Maoist rebels kill 10 District Reserve Guard troopers in an ambush in Sukma district, Chhattisgarh. Forces were returning from an anti-Naxal patrol deep in the jungle.",
+    "year": 2022,
+    "date": "2022-10-10"
+  },
+  {
+    "lat": 9.0,
+    "lng": 38.7,
+    "type": "military",
+    "country": "Ethiopia",
+    "title": "Tigray Peace Deal Signed",
+    "news": "Ethiopian government and Tigray People's Liberation Front sign Pretoria peace agreement ending two years of civil war, lifting the de facto humanitarian blockade.",
+    "year": 2022,
+    "date": "2022-11-02"
+  },
+  {
+    "lat": 35.9,
+    "lng": 128.6,
+    "type": "missile",
+    "country": "Korean Peninsula",
+    "title": "North Korea ICBM Test",
+    "news": "North Korea test-fires Hwasong-17 intercontinental ballistic missile, its longest-range ICBM to date, overflying Japan and triggering emergency alerts across Hokkaido.",
+    "year": 2022,
+    "date": "2022-11-18"
+  },
+  {
+    "lat": 34.5,
+    "lng": 69.3,
+    "type": "terrorism",
+    "country": "Afghanistan",
+    "title": "Kabul Hotel Bombing",
+    "news": "Haqqani-linked bombers attack Kabul's Intercontinental Hotel, killing over 40 including foreign nationals.",
+    "year": 2022,
+    "date": "2022-12-12"
+  },
+  {
+    "lat": 32.7,
+    "lng": 74.9,
+    "type": "terrorism",
+    "country": "India",
+    "title": "Rajouri Terror Attack — Off-Duty Soldiers Killed",
+    "news": "Militants ambush off-duty Indian Army soldiers in Rajouri district, Jammu. Six soldiers killed while traveling in a civilian vehicle. Pakistan-based Lashkar-e-Taiba suspected.",
+    "year": 2023,
+    "date": "2023-01-01"
+  },
+  {
+    "lat": 15.5,
+    "lng": 32.5,
+    "type": "nuclear",
+    "country": "Iran",
+    "title": "Iran Enriches Uranium to 84%",
+    "news": "IAEA inspectors detect uranium particles enriched to 83.7% at Iran's Fordow facility, just below weapons-grade threshold of 90%, triggering international alarm.",
+    "year": 2023,
+    "date": "2023-02-18"
+  },
+  {
+    "lat": 38.0,
+    "lng": 127.0,
+    "type": "missile",
+    "country": "Korean Peninsula",
+    "title": "North Korea Cruise Missile Salvo",
+    "news": "North Korea fires multiple cruise missiles into the Yellow Sea in a show of force following joint US-South Korea military exercises.",
+    "year": 2023,
+    "date": "2023-03-22"
+  },
+  {
+    "lat": 60.2,
+    "lng": 24.9,
+    "type": "military",
+    "country": "Finland",
+    "title": "Finland Joins NATO",
+    "news": "Finland officially joins NATO as the 31st member state, more than doubling the alliance's border with Russia.",
+    "year": 2023,
+    "date": "2023-04-04"
+  },
+  {
+    "lat": 12.8,
+    "lng": 30.2,
+    "type": "military",
+    "country": "Sudan",
+    "title": "Sudan Civil War Erupts",
+    "news": "Fighting breaks out in Khartoum between the Sudanese Armed Forces and the Rapid Support Forces. Khartoum International Airport attacked, all commercial flights suspended.",
+    "year": 2023,
+    "date": "2023-04-15"
+  },
+  {
+    "lat": 26.5,
+    "lng": 80.3,
+    "type": "terrorism",
+    "country": "India",
+    "title": "Atiq Ahmed Killing — Prayagraj",
+    "news": "Gangster-politician Atiq Ahmed shot dead on live TV while in police custody, sparking nationwide law-and-order furore.",
+    "year": 2023,
+    "date": "2023-04-15"
+  },
+  {
+    "lat": 33.4,
+    "lng": 74.3,
+    "type": "terrorism",
+    "country": "India",
+    "title": "Poonch Ambush — Air Force Convoy",
+    "news": "Militants attack Indian Air Force personnel convoy in Poonch, Jammu. Four IAF personnel killed in one of the deadliest attacks on Indian Air Force in the region in years.",
+    "year": 2023,
+    "date": "2023-04-20"
+  },
+  {
+    "lat": 28.7,
+    "lng": 77.1,
+    "type": "protest",
+    "country": "India",
+    "title": "Wrestlers' Protest — Delhi",
+    "news": "India's top Olympic wrestlers protest at Jantar Mantar alleging sexual harassment by WFI chief and BJP MP Brij Bhushan Singh.",
+    "year": 2023,
+    "date": "2023-04-23"
+  },
+  {
+    "lat": 30.0,
+    "lng": 48.0,
+    "type": "naval",
+    "country": "Iran",
+    "title": "Iran Seizes Marshall Islands Tanker",
+    "news": "Iran's IRGC Navy seizes the Advantage Sweet crude tanker in the Gulf of Oman in a pattern of maritime escalations.",
+    "year": 2023,
+    "date": "2023-04-27"
+  },
+  {
+    "lat": 24.8,
+    "lng": 93.9,
+    "type": "military",
+    "country": "India",
+    "title": "Manipur Ethnic Violence Erupts",
+    "news": "Large-scale ethnic clashes break out between Meitei and Kuki communities in Manipur. Over 200 killed, 60,000 displaced, hundreds of churches and homes burned. Internet suspended for months.",
+    "year": 2023,
+    "date": "2023-05-03"
+  },
+  {
+    "lat": 26.0,
+    "lng": 50.5,
+    "type": "naval",
+    "country": "Bahrain",
+    "title": "IRTC Tanker Harassment Spree",
+    "news": "Iran harasses or seizes over a dozen oil tankers in the IRTC corridor; US 5th Fleet accelerates presence operations.",
+    "year": 2023,
+    "date": "2023-05-03"
+  },
+  {
+    "lat": 31.5,
+    "lng": 74.3,
+    "type": "military",
+    "country": "Pakistan",
+    "title": "Pakistan Military Crackdown — PTI Protests",
+    "news": "Pakistan military moves against Imran Khan's PTI supporters after attack on corps commander's residence in Lahore.",
+    "year": 2023,
+    "date": "2023-05-09"
+  },
+  {
+    "lat": 47.0,
+    "lng": 38.0,
+    "type": "military",
+    "country": "Ukraine",
+    "title": "Bakhmut Falls to Russia",
+    "news": "Russian forces capture Bakhmut after 224 days of brutal urban warfare — the longest and bloodiest battle of the war.",
+    "year": 2023,
+    "date": "2023-05-20"
+  },
+  {
+    "lat": 43.5,
+    "lng": 42.5,
+    "type": "military",
+    "country": "Russia",
+    "title": "Belgorod Cross-Border Incursions",
+    "news": "Russian anti-Putin volunteer militias cross into Belgorod Oblast, briefly seizing villages in an embarrassment for the Kremlin.",
+    "year": 2023,
+    "date": "2023-05-22"
+  },
+  {
+    "lat": 20.5,
+    "lng": 87.0,
+    "type": "protest",
+    "country": "India",
+    "title": "Odisha Train Disaster",
+    "news": "Coromandel Express collides with goods train in Balasore killing 296 — India's deadliest rail accident in decades.",
+    "year": 2023,
+    "date": "2023-06-02"
+  },
+  {
+    "lat": 55.7,
+    "lng": 37.6,
+    "type": "political",
+    "country": "Russia",
+    "title": "Wagner Group Mutiny",
+    "news": "Wagner Group mercenary chief Yevgeny Prigozhin leads armed mutiny, advancing forces toward Moscow before standing down. Russian airspace over southern regions temporarily restricted.",
+    "year": 2023,
+    "date": "2023-06-23"
+  },
+  {
+    "lat": 43.0,
+    "lng": 41.7,
+    "type": "military",
+    "country": "Russia",
+    "title": "Wagner Seizes Rostov-on-Don",
+    "news": "Prigozhin's Wagner fighters seize Rostov-on-Don military headquarters and advance toward Moscow before standing down.",
+    "year": 2023,
+    "date": "2023-06-24"
+  },
+  {
+    "lat": 46.9,
+    "lng": 37.6,
+    "type": "naval",
+    "country": "Black Sea",
+    "title": "Black Sea Grain Corridor Suspended",
+    "news": "Russia withdraws from the UN-brokered Black Sea Grain Initiative, threatening naval interdiction of commercial vessels and effectively blocking Ukrainian agricultural exports.",
+    "year": 2023,
+    "date": "2023-07-17"
+  },
+  {
+    "lat": 25.0,
+    "lng": 94.0,
+    "type": "military",
+    "country": "India",
+    "title": "Manipur Violence Continues — Army Deployed",
+    "news": "Indian Army and Assam Rifles conduct flag marches across Manipur as ethnic clashes persist. Viral videos of atrocities against women trigger national outrage and parliamentary disruptions.",
+    "year": 2023,
+    "date": "2023-07-19"
+  },
+  {
+    "lat": 6.0,
+    "lng": 1.5,
+    "type": "political",
+    "country": "West Africa",
+    "title": "ECOWAS Threat: Niger Coup",
+    "news": "ECOWAS threatens military intervention after Niger's pro-French president is ousted in a military coup.",
+    "year": 2023,
+    "date": "2023-07-27"
+  },
+  {
+    "lat": 33.7,
+    "lng": 73.1,
+    "type": "terrorism",
+    "country": "Pakistan",
+    "title": "Pakistan Election Rally Bombing",
+    "news": "Twin suicide bombs kill 54 at a JUI-F political rally in Bajaur, KP — one of Pakistan's deadliest attacks in years.",
+    "year": 2023,
+    "date": "2023-07-30"
+  },
+  {
+    "lat": 16.0,
+    "lng": 0.0,
+    "type": "military",
+    "country": "Sahel Region",
+    "title": "Sahel Coup Wave & Airspace Closures",
+    "news": "Military coups sweep Mali, Burkina Faso, and Niger. France expelled from the region; airspace access for Western military aircraft revoked, complicating counter-terrorism operations.",
+    "year": 2023,
+    "date": "2023-08-26"
+  },
+  {
+    "lat": 27.0,
+    "lng": 88.5,
+    "type": "political",
+    "country": "India",
+    "title": "Sikkim Flash Flood — China Border Disruption",
+    "news": "Glacial lake outburst flood devastates the Teesta Valley in Sikkim, destroying a key Indian Army forward base and disrupting supply lines to the China border.",
+    "year": 2023,
+    "date": "2023-10-04"
+  },
+  {
+    "lat": 31.9,
+    "lng": 35.2,
+    "type": "military",
+    "country": "Gaza",
+    "title": "Hamas October 7 Attack",
+    "news": "Hamas launches unprecedented terror attack from Gaza into Israel, killing 1,200 and taking 250 hostages in a single day — deadliest attack on Jews since the Holocaust.",
+    "year": 2023,
+    "date": "2023-10-07"
+  },
+  {
+    "lat": 25.3,
+    "lng": 51.5,
+    "type": "military",
+    "country": "Qatar",
+    "title": "US CENTCOM Force Buildup",
+    "news": "US deploys additional carrier strike group and B-52 bombers to Al Udeid Air Base, Qatar, amid escalating Iran tensions.",
+    "year": 2023,
+    "date": "2023-10-08"
+  },
+  {
+    "lat": 15.8,
+    "lng": 43.0,
+    "type": "naval",
+    "country": "Red Sea",
+    "title": "USS Carney Intercepts Houthi Missiles",
+    "news": "US destroyer USS Carney shoots down multiple Houthi cruise missiles and drones in the Red Sea — first direct naval engagement.",
+    "year": 2023,
+    "date": "2023-10-19"
+  },
+  {
+    "lat": 34.0,
+    "lng": 41.0,
+    "type": "military",
+    "country": "Syria",
+    "title": "US Strikes Iran-Backed Militias in Syria",
+    "news": "US military conducts airstrikes against Iran-backed militia positions in eastern Syria following drone attacks on US forces.",
+    "year": 2023,
+    "date": "2023-10-26"
+  },
+  {
+    "lat": 31.5,
+    "lng": 34.5,
+    "type": "military",
+    "country": "Gaza",
+    "title": "Gaza Ground Offensive Begins",
+    "news": "Israeli Defense Forces launch large-scale ground offensive into Gaza following Hamas attacks of October 7, 2023. Airspace restrictions imposed over southern Israel.",
+    "year": 2023,
+    "date": "2023-10-27"
+  },
+  {
+    "lat": -1.0,
+    "lng": 29.5,
+    "type": "military",
+    "country": "DR Congo",
+    "title": "M23 Advances in North Kivu",
+    "news": "Rwanda-backed M23 rebels seize vast territory in North Kivu, displacing over 700,000 civilians.",
+    "year": 2023,
+    "date": "2023-10-30"
+  },
+  {
+    "lat": 50.0,
+    "lng": 36.2,
+    "type": "missile",
+    "country": "Ukraine",
+    "title": "Russia Strikes Kharkiv Civilian Infrastructure",
+    "news": "Sustained Russian strikes on Kharkiv's power grid and civilian infrastructure leave millions without heat during winter.",
+    "year": 2023,
+    "date": "2023-11-01"
+  },
+  {
     "lat": 15.5,
     "lng": 42.5,
     "type": "naval",
     "country": "Red Sea",
     "title": "Houthi Missile Strike: Red Sea",
     "news": "Houthi forces launch anti-ship ballistic missiles at commercial vessels transiting the southern Red Sea, forcing major shipping lines to reroute around the Cape of Good Hope.",
+    "year": 2023,
+    "date": "2023-11-19"
+  },
+  {
+    "lat": 15.1,
+    "lng": 39.8,
+    "type": "naval",
+    "country": "Red Sea",
+    "title": "MV Galaxy Leader Seized",
+    "news": "Houthi commandos rappel from a helicopter to seize the car carrier MV Galaxy Leader, linked to an Israeli businessman, in the Red Sea. Crew held for months.",
     "year": 2023,
     "date": "2023-11-19"
   },
@@ -30,244 +1010,14 @@
     "date": "2023-12-15"
   },
   {
-    "lat": 30.9,
-    "lng": 32.3,
-    "type": "blockade",
-    "country": "Suez Canal",
-    "title": "Ever Given Blocks Suez Canal",
-    "news": "Container ship Ever Given runs aground in the Suez Canal, blocking passage for 6 days and causing a global supply chain crisis affecting an estimated $9.6 billion in daily trade.",
-    "year": 2021,
-    "date": "2021-03-23"
-  },
-  {
-    "lat": 48.5,
-    "lng": 32.0,
+    "lat": 12.2,
+    "lng": 44.0,
     "type": "military",
-    "country": "Ukraine",
-    "title": "Russia Invades Ukraine",
-    "news": "Russia launches full-scale military invasion of Ukraine across multiple fronts. Airspace closed to commercial aviation across Ukraine, Belarus, and parts of Russia, triggering mass rerouting of European-Asian flights.",
-    "year": 2022,
-    "date": "2022-02-24"
-  },
-  {
-    "lat": 46.9,
-    "lng": 37.6,
-    "type": "naval",
-    "country": "Black Sea",
-    "title": "Black Sea Grain Corridor Suspended",
-    "news": "Russia withdraws from the UN-brokered Black Sea Grain Initiative, threatening naval interdiction of commercial vessels and effectively blocking Ukrainian agricultural exports.",
-    "year": 2023,
-    "date": "2023-07-17"
-  },
-  {
-    "lat": 55.0,
-    "lng": 15.0,
-    "type": "naval",
-    "country": "Baltic Sea",
-    "title": "Baltic Pipeline Sabotage",
-    "news": "Underwater explosions destroy Nord Stream 1 and Nord Stream 2 natural gas pipelines in the Baltic Sea near Bornholm Island, disrupting European energy infrastructure.",
-    "year": 2022,
-    "date": "2022-09-26"
-  },
-  {
-    "lat": 31.5,
-    "lng": 34.5,
-    "type": "military",
-    "country": "Gaza",
-    "title": "Gaza Ground Offensive Begins",
-    "news": "Israeli Defense Forces launch large-scale ground offensive into Gaza following Hamas attacks of October 7, 2023. Airspace restrictions imposed over southern Israel.",
-    "year": 2023,
-    "date": "2023-10-27"
-  },
-  {
-    "lat": 33.8,
-    "lng": 35.5,
-    "type": "missile",
-    "country": "Lebanon",
-    "title": "Hezbollah Rocket Barrage",
-    "news": "Hezbollah launches sustained rocket and drone campaign from Lebanon into northern Israel, prompting temporary closure of Ben Gurion Airport approach corridors.",
+    "country": "Yemen",
+    "title": "US-UK Strikes on Houthi Positions",
+    "news": "US and UK conduct joint airstrikes on Houthi military infrastructure in Yemen following sustained Red Sea shipping attacks.",
     "year": 2024,
-    "date": "2024-09-23"
-  },
-  {
-    "lat": 32.4,
-    "lng": 53.6,
-    "type": "missile",
-    "country": "Iran",
-    "title": "Iran Ballistic Missile Strike on Israel",
-    "news": "Iran launches over 300 drones and ballistic missiles directly at Israel in Operation True Promise, marking the first direct Iranian military attack on Israeli territory.",
-    "year": 2024,
-    "date": "2024-04-13"
-  },
-  {
-    "lat": 15.3,
-    "lng": 38.9,
-    "type": "military",
-    "country": "Ethiopia",
-    "title": "Tigray War Airspace Closure",
-    "news": "Armed conflict in Ethiopia's Tigray region escalates. Ethiopian airspace partially restricted as fighting spreads. UN reports widespread atrocities and humanitarian blockade.",
-    "year": 2021,
-    "date": "2021-06-28"
-  },
-  {
-    "lat": 34.5,
-    "lng": 69.2,
-    "type": "military",
-    "country": "Afghanistan",
-    "title": "Taliban Takes Kabul",
-    "news": "Taliban forces capture Kabul and seize control of Afghanistan. Hamid Karzai International Airport overwhelmed during chaotic US-led evacuation, airspace temporarily closed to civilian traffic.",
-    "year": 2021,
-    "date": "2021-08-15"
-  },
-  {
-    "lat": 40.1,
-    "lng": 47.5,
-    "type": "military",
-    "country": "Nagorno-Karabakh",
-    "title": "Azerbaijan-Armenia War",
-    "news": "Azerbaijan launches full military offensive to retake Nagorno-Karabakh. Airspace over the conflict zone closed; drone warfare including Turkish Bayraktar TB2s reshapes the battlefield.",
-    "year": 2020,
-    "date": "2020-09-27"
-  },
-  {
-    "lat": 12.8,
-    "lng": 30.2,
-    "type": "military",
-    "country": "Sudan",
-    "title": "Sudan Civil War Erupts",
-    "news": "Fighting breaks out in Khartoum between the Sudanese Armed Forces and the Rapid Support Forces. Khartoum International Airport attacked, all commercial flights suspended.",
-    "year": 2023,
-    "date": "2023-04-15"
-  },
-  {
-    "lat": 16.0,
-    "lng": 0.0,
-    "type": "military",
-    "country": "Sahel Region",
-    "title": "Sahel Coup Wave & Airspace Closures",
-    "news": "Military coups sweep Mali, Burkina Faso, and Niger. France expelled from the region; airspace access for Western military aircraft revoked, complicating counter-terrorism operations.",
-    "year": 2023,
-    "date": "2023-08-26"
-  },
-  {
-    "lat": 15.5,
-    "lng": 32.5,
-    "type": "political",
-    "country": "Sudan",
-    "title": "Sudan Coup — Al-Bashir Ousted",
-    "news": "Sudanese military ousts long-time president Omar al-Bashir amid mass protests. Transitional Sovereignty Council takes power amid ongoing instability.",
-    "year": 2021,
-    "date": "2021-10-25"
-  },
-  {
-    "lat": 13.5,
-    "lng": 2.1,
-    "type": "terrorism",
-    "country": "Niger",
-    "title": "Jihadist Attacks Escalate in Niger",
-    "news": "ISIS-affiliated groups intensify attacks in western Niger near the Malian border, killing hundreds of civilians and displacing over 200,000 people.",
-    "year": 2021,
-    "date": "2021-03-21"
-  },
-  {
-    "lat": 6.3,
-    "lng": 20.4,
-    "type": "terrorism",
-    "country": "Central African Republic",
-    "title": "CAR Armed Groups Offensive",
-    "news": "Coalition of armed rebel groups launches coordinated offensive threatening Bangui. Russian Wagner Group mercenaries deployed to support government forces.",
-    "year": 2021,
-    "date": "2021-01-13"
-  },
-  {
-    "lat": 23.6,
-    "lng": 121.0,
-    "type": "military",
-    "country": "Taiwan Strait",
-    "title": "China PLA Taiwan Strait Drills",
-    "news": "China conducts unprecedented military encirclement exercises around Taiwan following Nancy Pelosi's visit, simulating blockade with live-fire drills and airspace incursions.",
-    "year": 2022,
-    "date": "2022-08-04"
-  },
-  {
-    "lat": 35.9,
-    "lng": 128.6,
-    "type": "missile",
-    "country": "Korean Peninsula",
-    "title": "North Korea ICBM Test",
-    "news": "North Korea test-fires Hwasong-17 intercontinental ballistic missile, its longest-range ICBM to date, overflying Japan and triggering emergency alerts across Hokkaido.",
-    "year": 2022,
-    "date": "2022-11-18"
-  },
-  {
-    "lat": 38.0,
-    "lng": 127.0,
-    "type": "missile",
-    "country": "Korean Peninsula",
-    "title": "North Korea Cruise Missile Salvo",
-    "news": "North Korea fires multiple cruise missiles into the Yellow Sea in a show of force following joint US-South Korea military exercises.",
-    "year": 2023,
-    "date": "2023-03-22"
-  },
-  {
-    "lat": 60.0,
-    "lng": 57.0,
-    "type": "economic",
-    "country": "Russia",
-    "title": "Russia Airspace Closed to West",
-    "news": "Russia closes its airspace to 36 countries in retaliation for sanctions following the Ukraine invasion, forcing European carriers to add 3–5 hours to Asia-Pacific routes.",
-    "year": 2022,
-    "date": "2022-03-01"
-  },
-  {
-    "lat": 51.5,
-    "lng": 28.0,
-    "type": "political",
-    "country": "Belarus",
-    "title": "Belarus Forces Ryanair Diversion",
-    "news": "Belarus scrambles a MiG-29 fighter jet to force Ryanair flight FR4978 to land in Minsk to arrest dissident journalist Roman Protasevich. EU bans Belarusian carriers.",
-    "year": 2021,
-    "date": "2021-05-23"
-  },
-  {
-    "lat": 24.7,
-    "lng": 46.7,
-    "type": "political",
-    "country": "Saudi Arabia",
-    "title": "Saudi-Qatar Airspace Reopened",
-    "news": "Saudi Arabia, UAE, Bahrain and Egypt lift the 3.5-year air blockade against Qatar, reopening airspace and restoring diplomatic ties at the Al-Ula summit.",
-    "year": 2021,
-    "date": "2021-01-05"
-  },
-  {
-    "lat": 33.3,
-    "lng": 44.4,
-    "type": "missile",
-    "country": "Iraq",
-    "title": "Rocket Attacks on Baghdad Green Zone",
-    "news": "Iran-backed militia groups fire salvos of Katyusha rockets into Baghdad's International Zone, targeting US Embassy and military facilities.",
-    "year": 2020,
-    "date": "2020-03-11"
-  },
-  {
-    "lat": 15.1,
-    "lng": 39.8,
-    "type": "naval",
-    "country": "Red Sea",
-    "title": "MV Galaxy Leader Seized",
-    "news": "Houthi commandos rappel from a helicopter to seize the car carrier MV Galaxy Leader, linked to an Israeli businessman, in the Red Sea. Crew held for months.",
-    "year": 2023,
-    "date": "2023-11-19"
-  },
-  {
-    "lat": 1.3,
-    "lng": 103.8,
-    "type": "economic",
-    "country": "Strait of Malacca",
-    "title": "Malacca Piracy Alert Elevated",
-    "news": "Regional Coast Guard authorities raise piracy threat level in the Strait of Malacca following a spike in armed robberies targeting anchored tankers.",
-    "year": 2022,
-    "date": "2022-06-10"
+    "date": "2024-01-12"
   },
   {
     "lat": 4.0,
@@ -280,234 +1030,44 @@
     "date": "2024-02-05"
   },
   {
-    "lat": 36.2,
-    "lng": 37.1,
+    "lat": -8.8,
+    "lng": 13.2,
     "type": "military",
-    "country": "Syria",
-    "title": "Syria HTS Rebel Offensive",
-    "news": "Hayat Tahrir al-Sham-led rebel coalition launches surprise offensive, capturing Aleppo in days and eventually toppling the Assad government in Damascus.",
+    "country": "Angola",
+    "title": "Angola-DRC Border Tensions",
+    "news": "Thousands of DRC refugees flood into Angola following M23 offensive; border security incidents spike.",
     "year": 2024,
-    "date": "2024-11-27"
+    "date": "2024-02-15"
   },
   {
-    "lat": 9.0,
-    "lng": 38.7,
+    "lat": 48.7,
+    "lng": 37.8,
     "type": "military",
-    "country": "Ethiopia",
-    "title": "Tigray Peace Deal Signed",
-    "news": "Ethiopian government and Tigray People's Liberation Front sign Pretoria peace agreement ending two years of civil war, lifting the de facto humanitarian blockade.",
-    "year": 2022,
-    "date": "2022-11-02"
+    "country": "Ukraine",
+    "title": "Avdiivka Falls to Russia",
+    "news": "Russia captures Avdiivka after months of grinding urban combat, marking its largest territorial gain since Bakhmut.",
+    "year": 2024,
+    "date": "2024-02-17"
   },
   {
-    "lat": 24.0,
-    "lng": 90.0,
-    "type": "political",
-    "country": "Myanmar",
-    "title": "Myanmar Military Coup",
-    "news": "Myanmar military seizes power in coup, arresting Aung San Suu Kyi. Yangon International Airport temporarily closed; internet and communications blacked out nationwide.",
-    "year": 2021,
-    "date": "2021-02-01"
-  },
-  {
-    "lat": 19.0,
-    "lng": -72.3,
-    "type": "political",
-    "country": "Haiti",
-    "title": "Haiti President Assassinated",
-    "news": "Haitian President Jovenel Moïse assassinated at his private residence. Port-au-Prince falls into gang-controlled chaos; Toussaint Louverture airport repeatedly closed.",
-    "year": 2021,
-    "date": "2021-07-07"
-  },
-  {
-    "lat": 18.5,
-    "lng": -72.3,
-    "type": "political",
-    "country": "Haiti",
-    "title": "Haiti Gangs Blockade Capital",
-    "news": "Gang alliance G9 blockades the Varreux fuel terminal in Port-au-Prince, crippling the country's fuel supply and triggering a humanitarian crisis.",
-    "year": 2022,
-    "date": "2022-10-08"
-  },
-  {
-    "lat": -4.3,
-    "lng": 15.3,
-    "type": "political",
-    "country": "DR Congo",
-    "title": "M23 Captures Goma",
-    "news": "Rwanda-backed M23 rebels seize Goma, the largest city in eastern DRC, marking a major escalation in the decades-long conflict. UN peacekeepers unable to prevent the fall.",
-    "year": 2025,
-    "date": "2025-01-27"
-  },
-  {
-    "lat": 15.5,
-    "lng": 32.5,
-    "type": "nuclear",
+    "lat": 32.4,
+    "lng": 53.6,
+    "type": "missile",
     "country": "Iran",
-    "title": "Iran Enriches Uranium to 84%",
-    "news": "IAEA inspectors detect uranium particles enriched to 83.7% at Iran's Fordow facility, just below weapons-grade threshold of 90%, triggering international alarm.",
-    "year": 2023,
-    "date": "2023-02-18"
-  },
-  {
-    "lat": 55.7,
-    "lng": 37.6,
-    "type": "political",
-    "country": "Russia",
-    "title": "Wagner Group Mutiny",
-    "news": "Wagner Group mercenary chief Yevgeny Prigozhin leads armed mutiny, advancing forces toward Moscow before standing down. Russian airspace over southern regions temporarily restricted.",
-    "year": 2023,
-    "date": "2023-06-23"
-  },
-  {
-    "lat": 34.5,
-    "lng": 76.5,
-    "type": "military",
-    "country": "India",
-    "title": "Galwan Valley Clash — India vs China",
-    "news": "Indian and Chinese soldiers engage in deadly hand-to-hand combat in the Galwan Valley, Ladakh. 20 Indian soldiers killed. India bans 59 Chinese apps and restricts Chinese investment.",
-    "year": 2020,
-    "date": "2020-06-15"
-  },
-  {
-    "lat": 33.7,
-    "lng": 75.9,
-    "type": "military",
-    "country": "India",
-    "title": "LAC Standoff — Pangong Lake",
-    "news": "Chinese PLA troops occupy contested ridgelines along the Line of Actual Control near Pangong Tso lake. Indian Army deploys additional brigades; both sides hold months-long face-off.",
-    "year": 2020,
-    "date": "2020-08-31"
-  },
-  {
-    "lat": 32.7,
-    "lng": 74.8,
-    "type": "terrorism",
-    "country": "India",
-    "title": "Nagrota Terror Attack",
-    "news": "Pakistani militants infiltrate and attack an Indian Army convoy near Nagrota in Jammu. Four militants and two soldiers killed in extended gunfight near a highway toll plaza.",
-    "year": 2020,
-    "date": "2020-11-19"
-  },
-  {
-    "lat": 34.1,
-    "lng": 77.6,
-    "type": "military",
-    "country": "India",
-    "title": "India-China Disengage at Pangong",
-    "news": "India and China reach disengagement agreement at Pangong Tso after months of standoff. Both sides pull back tanks and troops from contested north and south bank positions.",
-    "year": 2021,
-    "date": "2021-02-11"
-  },
-  {
-    "lat": 32.5,
-    "lng": 75.9,
-    "type": "terrorism",
-    "country": "India",
-    "title": "Jammu Air Force Base Drone Attack",
-    "news": "Two explosive-laden drones strike the Indian Air Force Station in Jammu — the first ever drone attack on an Indian military installation. Pakistan-based groups suspected.",
-    "year": 2021,
-    "date": "2021-06-27"
-  },
-  {
-    "lat": 33.5,
-    "lng": 74.3,
-    "type": "terrorism",
-    "country": "India",
-    "title": "Sopore Bus Attack — CRPF Ambush",
-    "news": "Militants ambush a CRPF bus in Sopore, Jammu & Kashmir, killing one trooper and a civilian. Militant fire directed from rooftops in a densely populated civilian area.",
-    "year": 2021,
-    "date": "2021-07-01"
-  },
-  {
-    "lat": 28.6,
-    "lng": 77.2,
-    "type": "protest",
-    "country": "India",
-    "title": "Farmers Siege of Delhi — Republic Day Violence",
-    "news": "Tens of thousands of protesting farmers breach police barriers and storm the Red Fort during Republic Day celebrations. Clashes across Delhi; internet shut down in border zones.",
-    "year": 2021,
-    "date": "2021-01-26"
-  },
-  {
-    "lat": 13.0,
-    "lng": 77.6,
-    "type": "protest",
-    "country": "India",
-    "title": "Hijab Ban Protests — Karnataka",
-    "news": "Mass protests erupt across Karnataka after government colleges ban hijab. Clashes between student groups; Section 144 prohibitory orders imposed in multiple districts.",
-    "year": 2022,
-    "date": "2022-02-08"
-  },
-  {
-    "lat": 22.5,
-    "lng": 88.3,
-    "type": "protest",
-    "country": "India",
-    "title": "Kolkata Political Violence — BJP vs TMC",
-    "news": "Post-election violence erupts in West Bengal following TMC's landslide victory. Multiple deaths reported; BJP and TMC workers clash across multiple districts. NHRC probe ordered.",
-    "year": 2021,
-    "date": "2021-05-03"
-  },
-  {
-    "lat": 24.8,
-    "lng": 93.9,
-    "type": "military",
-    "country": "India",
-    "title": "Manipur Ethnic Violence Erupts",
-    "news": "Large-scale ethnic clashes break out between Meitei and Kuki communities in Manipur. Over 200 killed, 60,000 displaced, hundreds of churches and homes burned. Internet suspended for months.",
-    "year": 2023,
-    "date": "2023-05-03"
-  },
-  {
-    "lat": 25.0,
-    "lng": 94.0,
-    "type": "military",
-    "country": "India",
-    "title": "Manipur Violence Continues — Army Deployed",
-    "news": "Indian Army and Assam Rifles conduct flag marches across Manipur as ethnic clashes persist. Viral videos of atrocities against women trigger national outrage and parliamentary disruptions.",
-    "year": 2023,
-    "date": "2023-07-19"
-  },
-  {
-    "lat": 33.8,
-    "lng": 74.9,
-    "type": "terrorism",
-    "country": "India",
-    "title": "Shopian Militant Ambush — Kashmir",
-    "news": "Militants ambush Indian Army patrol in Shopian district of Kashmir, killing three soldiers. Security forces launch massive cordon-and-search operation across the valley.",
-    "year": 2022,
-    "date": "2022-04-02"
-  },
-  {
-    "lat": 32.7,
-    "lng": 74.9,
-    "type": "terrorism",
-    "country": "India",
-    "title": "Rajouri Terror Attack — Off-Duty Soldiers Killed",
-    "news": "Militants ambush off-duty Indian Army soldiers in Rajouri district, Jammu. Six soldiers killed while traveling in a civilian vehicle. Pakistan-based Lashkar-e-Taiba suspected.",
-    "year": 2023,
-    "date": "2023-01-01"
-  },
-  {
-    "lat": 33.4,
-    "lng": 74.3,
-    "type": "terrorism",
-    "country": "India",
-    "title": "Poonch Ambush — Air Force Convoy",
-    "news": "Militants attack Indian Air Force personnel convoy in Poonch, Jammu. Four IAF personnel killed in one of the deadliest attacks on Indian Air Force in the region in years.",
-    "year": 2023,
-    "date": "2023-04-20"
-  },
-  {
-    "lat": 34.1,
-    "lng": 77.2,
-    "type": "military",
-    "country": "India",
-    "title": "Depsang Plains Standoff Resolved",
-    "news": "India and China complete disengagement at Depsang and Demchok — the last two friction points on the LAC in eastern Ladakh — following 4 years of military standoff.",
+    "title": "Iran Ballistic Missile Strike on Israel",
+    "news": "Iran launches over 300 drones and ballistic missiles directly at Israel in Operation True Promise, marking the first direct Iranian military attack on Israeli territory.",
     "year": 2024,
-    "date": "2024-10-21"
+    "date": "2024-04-13"
+  },
+  {
+    "lat": 50.5,
+    "lng": 30.5,
+    "type": "missile",
+    "country": "Ukraine",
+    "title": "Massive Russian Missile Barrage on Kyiv",
+    "news": "Russia fires 80+ cruise missiles and Shahed drones at Kyiv and other cities in one of the largest single air attacks of the war.",
+    "year": 2024,
+    "date": "2024-05-08"
   },
   {
     "lat": 32.0,
@@ -520,6 +1080,66 @@
     "date": "2024-06-09"
   },
   {
+    "lat": 32.3,
+    "lng": 75.6,
+    "type": "terrorism",
+    "country": "India",
+    "title": "Kathua Terror Attack",
+    "news": "Militants ambush an Indian Army vehicle in Kathua district with automatic weapons and grenades. Five soldiers killed in the attack attributed to Pakistan-based terror group.",
+    "year": 2024,
+    "date": "2024-07-08"
+  },
+  {
+    "lat": 46.0,
+    "lng": 33.5,
+    "type": "military",
+    "country": "Ukraine",
+    "title": "Ukraine Kursk Incursion",
+    "news": "Ukraine launches surprise cross-border incursion into Russia's Kursk Oblast — the first foreign occupation of Russian soil since WWII.",
+    "year": 2024,
+    "date": "2024-08-06"
+  },
+  {
+    "lat": -1.9,
+    "lng": 30.1,
+    "type": "political",
+    "country": "Rwanda",
+    "title": "Rwanda-DRC Proxy War Escalates",
+    "news": "Rwanda accused by UN panel of directly commanding M23 forces in eastern DRC, supplying troops and weaponry.",
+    "year": 2024,
+    "date": "2024-08-20"
+  },
+  {
+    "lat": 33.8,
+    "lng": 35.5,
+    "type": "missile",
+    "country": "Lebanon",
+    "title": "Hezbollah Rocket Barrage",
+    "news": "Hezbollah launches sustained rocket and drone campaign from Lebanon into northern Israel, prompting temporary closure of Ben Gurion Airport approach corridors.",
+    "year": 2024,
+    "date": "2024-09-23"
+  },
+  {
+    "lat": 33.5,
+    "lng": 35.8,
+    "type": "military",
+    "country": "Lebanon",
+    "title": "Israel Ground Operation in Lebanon",
+    "news": "IDF launches ground operation into southern Lebanon targeting Hezbollah infrastructure after weeks of escalating rocket and drone exchanges.",
+    "year": 2024,
+    "date": "2024-10-01"
+  },
+  {
+    "lat": 32.4,
+    "lng": 53.0,
+    "type": "missile",
+    "country": "Iran",
+    "title": "Iran Operation True Promise II",
+    "news": "Iran fires ballistic missiles and drones at Israel in a second wave of direct strikes after Israeli operations against Hezbollah leadership.",
+    "year": 2024,
+    "date": "2024-10-01"
+  },
+  {
     "lat": 33.7,
     "lng": 75.1,
     "type": "terrorism",
@@ -530,14 +1150,44 @@
     "date": "2024-10-20"
   },
   {
-    "lat": 32.3,
-    "lng": 75.6,
-    "type": "terrorism",
+    "lat": 34.1,
+    "lng": 77.2,
+    "type": "military",
     "country": "India",
-    "title": "Kathua Terror Attack",
-    "news": "Militants ambush an Indian Army vehicle in Kathua district with automatic weapons and grenades. Five soldiers killed in the attack attributed to Pakistan-based terror group.",
+    "title": "Depsang Plains Standoff Resolved",
+    "news": "India and China complete disengagement at Depsang and Demchok — the last two friction points on the LAC in eastern Ladakh — following 4 years of military standoff.",
     "year": 2024,
-    "date": "2024-07-08"
+    "date": "2024-10-21"
+  },
+  {
+    "lat": 31.8,
+    "lng": 35.0,
+    "type": "military",
+    "country": "Israel",
+    "title": "Israel Strikes Iranian Air Defenses",
+    "news": "Israeli Air Force strikes Iranian S-300 air defense radars and military infrastructure in Isfahan in a retaliatory strike.",
+    "year": 2024,
+    "date": "2024-10-26"
+  },
+  {
+    "lat": 36.2,
+    "lng": 37.1,
+    "type": "military",
+    "country": "Syria",
+    "title": "Syria HTS Rebel Offensive",
+    "news": "Hayat Tahrir al-Sham-led rebel coalition launches surprise offensive, capturing Aleppo in days and eventually toppling the Assad government in Damascus.",
+    "year": 2024,
+    "date": "2024-11-27"
+  },
+  {
+    "lat": -4.3,
+    "lng": 15.3,
+    "type": "political",
+    "country": "DR Congo",
+    "title": "M23 Captures Goma",
+    "news": "Rwanda-backed M23 rebels seize Goma, the largest city in eastern DRC, marking a major escalation in the decades-long conflict. UN peacekeepers unable to prevent the fall.",
+    "year": 2025,
+    "date": "2025-01-27"
   },
   {
     "lat": 34.2,
@@ -570,54 +1220,73 @@
     "date": "2025-05-10"
   },
   {
-    "lat": 23.0,
-    "lng": 92.9,
+    "lat": 31.0,
+    "lng": 34.8,
+    "type": "missile",
+    "country": "Israel",
+    "title": "Iron Beam Deployment: Southern Front",
+    "news": "Israel activates its first theater-scale 'Iron Beam' laser defense units near the Negev to counter high-volume rocket barrages. Defense analysts report successful interception of ballistic threats from long-range proxy launchers.",
+    "year": 2026,
+    "date": "2026-01-22"
+  },
+  {
+    "lat": 32.4,
+    "lng": 53.6,
+    "type": "nuclear",
+    "country": "Iran",
+    "title": "Iran Underground Enrichment Escalation",
+    "news": "IAEA confirms activation of new cascade of IR-6 centrifuges at a previously undisclosed depth in Fordow. US and EU signal potential activation of 'Snapback' sanctions as nuclear breakout time shortens to weeks.",
+    "year": 2026,
+    "date": "2026-02-05"
+  },
+  {
+    "lat": 1.3,
+    "lng": 103.8,
+    "type": "blockade",
+    "country": "Singapore",
+    "title": "Malacca Strait Navigational Alert",
+    "news": "Heavy naval drills and GPS jamming incidents reported in the Singapore Strait, causing commercial vessels to engage in defensive maneuvering. Strategic chokepoint risks elevated.",
+    "year": 2026,
+    "date": "2026-02-14"
+  },
+  {
+    "lat": 75.0,
+    "lng": 15.0,
+    "type": "military",
+    "country": "Arctic",
+    "title": "Arctic Defense Escalation",
+    "news": "Deployment of mobile radar units and deep-sea sensors along the Svalbard-Barents corridor. Rising jurisdictional disputes over seabed minerals trigger increased naval patrols.",
+    "year": 2026,
+    "date": "2026-03-01"
+  },
+  {
+    "lat": 22.1,
+    "lng": 72.1,
     "type": "military",
     "country": "India",
-    "title": "Mizoram — Myanmar Refugee Crisis",
-    "news": "Thousands of Myanmar refugees including soldiers fleeing the civil war cross into India's Mizoram state. Indian Border Security Force deployed along porous border amid tensions.",
-    "year": 2022,
-    "date": "2022-09-05"
+    "title": "Dholera Strategic Hub Security",
+    "news": "Indian Ministry of Defense activates a tactical air defense shield around the Dholera Industrial Hub following threats from cross-border cyber-physical actors targeting semiconductor facilities.",
+    "year": 2026,
+    "date": "2026-03-11"
   },
   {
-    "lat": 27.0,
-    "lng": 88.5,
-    "type": "political",
-    "country": "India",
-    "title": "Sikkim Flash Flood — China Border Disruption",
-    "news": "Glacial lake outburst flood devastates the Teesta Valley in Sikkim, destroying a key Indian Army forward base and disrupting supply lines to the China border.",
-    "year": 2023,
-    "date": "2023-10-04"
+    "lat": 26.6,
+    "lng": 56.5,
+    "type": "blockade",
+    "country": "Strait of Hormuz",
+    "title": "US Navy Defensive Patrols",
+    "news": "US 5th Fleet escalates presence in the Strait of Hormuz following harassment of energy tankers by IRGC swarm boats. Tensions reach critical levels as insurance premiums for LNG transits spike across the globe.",
+    "year": 2026,
+    "date": "2026-03-12"
   },
   {
-    "lat": 20.9,
-    "lng": 85.1,
-    "type": "terrorism",
-    "country": "India",
-    "title": "Maoist Ambush — Chhattisgarh",
-    "news": "Naxalite Maoist rebels detonate IEDs and ambush a security forces convoy in Dantewada, Chhattisgarh, killing 22 personnel including District Reserve Guard members.",
-    "year": 2021,
-    "date": "2021-04-03"
-  },
-  {
-    "lat": 19.0,
-    "lng": 82.0,
-    "type": "terrorism",
-    "country": "India",
-    "title": "Bijapur Maoist Attack",
-    "news": "CPI (Maoist) ambush kills 22 security personnel in Bijapur, Chhattisgarh — one of the deadliest Naxal attacks in years. Forces were on a joint search operation in dense forest.",
-    "year": 2021,
-    "date": "2021-04-03"
-  },
-  {
-    "lat": 18.5,
-    "lng": 82.5,
-    "type": "terrorism",
-    "country": "India",
-    "title": "Maoists Kill 10 — Chhattisgarh",
-    "news": "Maoist rebels kill 10 District Reserve Guard troopers in an ambush in Sukma district, Chhattisgarh. Forces were returning from an anti-Naxal patrol deep in the jungle.",
-    "year": 2022,
-    "date": "2022-10-10"
+    "lat": 32.5,
+    "lng": 48.0,
+    "type": "military",
+    "country": "Regional Axis",
+    "title": "Tri-National Kinetic Escalation",
+    "news": "Coordinated UAV strikes and long-range ballistic exchanges reported across the region. US CENTCOM confirms defensive interceptions over international waters, while regional energy hubs enter high-alert status following cyber-kinetic breaches.",
+    "year": 2026,
+    "date": "2026-03-13"
   }
-  
 ]

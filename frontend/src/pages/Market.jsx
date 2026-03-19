@@ -29,6 +29,10 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../api/config";
+import MarketAnalysisPanel from "../components/MarketAnalysisPanel";
+import MarketSummaryBanner from "../components/MarketSummaryBanner";
+
+
 
 // ─── Finnhub config ──────────────────────────────────────────────────────────────
 const FINNHUB_KEY = import.meta.env.VITE_FINNHUB_KEY || "";
@@ -61,19 +65,16 @@ const toFH = (s) => {
 // ─── Yahoo Finance → TradingView symbol map ───────────────────────────────────
 const TV_SYM_MAP = {
   "^GSPC": "FOREXCOM:SPXUSD",
-  "^IXIC": "NASDAQ:NDX",
-  "^DJI": "DJ:DJI",
-  "^VIX": "CBOE:VIX",
-  "DX-Y.NYB": "TVC:DXY",
-  "^TNX": "TVC:US10Y",
-  "GC=F": "COMEX:GC1!",
-  "CL=F": "NYMEX:CL1!",
-  "BZ=F": "NYMEX:BB1!",
-  "NG=F": "NYMEX:NG1!",
-  "ZW=F": "CBOT:ZW1!",
-  "ZC=F": "CBOT:ZC1!",
-  "SI=F": "COMEX:SI1!",
-  "HG=F": "COMEX:HG1!",
+  "^IXIC": "FOREXCOM:NSXUSD",
+  "^DJI": "AMEX:DIA",
+  "^VIX": "AMEX:VXX",
+  "DX-Y.NYB": "CAPITALCOM:DXY",
+  "^TNX": "NASDAQ:TLT",
+  "GC=F": "SAXO:XAUUSD",
+  "BZ=F": "TVC:UKOIL",
+  "ZC=F": "TVC:CORN",
+  "SI=F": "SAXO:XAGUSD",
+  "HG=F": "TVC:COPPER",
   "BTC-USD": "BINANCE:BTCUSDT",
   "ETH-USD": "BINANCE:ETHUSDT",
   LMT: "NYSE:LMT",
@@ -290,16 +291,14 @@ function TVTickerTape() {
     {
       symbols: [
         { proName: "FOREXCOM:SPXUSD", title: "S&P 500" },
-        { proName: "NASDAQ:NDX", title: "Nasdaq 100" },
-        { proName: "DJ:DJI", title: "Dow Jones" },
-        { proName: "CBOE:VIX", title: "VIX" },
-        { proName: "TVC:DXY", title: "USD Index" },
-        { proName: "TVC:US10Y", title: "10Y Yield" },
-        { proName: "COMEX:GC1!", title: "Gold" },
-        { proName: "NYMEX:CL1!", title: "WTI Oil" },
-        { proName: "NYMEX:NG1!", title: "Nat Gas" },
-        { proName: "COMEX:SI1!", title: "Silver" },
-        { proName: "CBOT:ZW1!", title: "Wheat" },
+        { proName: "FOREXCOM:NSXUSD", title: "Nasdaq 100" },
+        { proName: "AMEX:DIA", title: "Dow Jones" },
+        { proName: "AMEX:VXX", title: "VIX" },
+        { proName: "CAPITALCOM:DXY", title: "USD Index" },
+        { proName: "NASDAQ:TLT", title: "10Y Yield" },
+        { proName: "SAXO:XAUUSD", title: "Gold" },
+        { proName: "TVC:UKOIL", title: "Brent Oil" },
+        { proName: "SAXO:XAGUSD", title: "Silver" },
         { proName: "BINANCE:BTCUSDT", title: "Bitcoin" },
         { proName: "BINANCE:ETHUSDT", title: "Ethereum" },
         { proName: "BINANCE:SOLUSDT", title: "Solana" },
@@ -328,23 +327,35 @@ function TVTickerTape() {
 // ─── TradingView: Advanced Chart ─────────────────────────────────────────────
 function TVAdvancedChart({ tvSymbol }) {
   const ref = useTVWidget(
-    "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js",
+    "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js",
     {
-      autosize: true,
-      symbol: tvSymbol,
-      interval: "D",
-      timezone: "Etc/UTC",
-      theme: "dark",
-      style: "1",
+      symbols: [[tvSymbol]],
+      chartOnly: false,
+      width: "100%",
+      height: "100%",
       locale: "en",
-      enable_publishing: false,
-      allow_symbol_change: true,
-      hide_top_toolbar: false,
-      hide_legend: false,
-      save_image: false,
+      colorTheme: "dark",
+      autosize: true,
+      showVolume: true,
+      showMA: true,
+      hideDateRanges: false,
+      hideMarketStatus: false,
+      hideSymbolLogo: false,
+      scalePosition: "right",
+      scaleMode: "Normal",
+      fontFamily:
+        "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
+      fontSize: "10",
+      noTimeScale: false,
+      valuesTracking: "1",
+      changeMode: "price-and-percent",
+      chartType: "area",
+      lineWidth: 2,
+      lineType: 0,
       backgroundColor: "rgba(6,10,20,1)",
-      gridColor: "rgba(30,45,74,0.4)",
-      studies: ["STD;RSI", "STD;MACD"],
+      lineColor: "rgba(41,98,255,1)",
+      topColor: "rgba(41,98,255,0.3)",
+      bottomColor: "rgba(41,98,255,0)",
     },
     [tvSymbol],
   );
@@ -357,20 +368,49 @@ function TVAdvancedChart({ tvSymbol }) {
   );
 }
 
-// ─── TradingView: Technical Analysis ─────────────────────────────────────────
-function TVTechnicalAnalysis({ tvSymbol }) {
+// ─── TradingView: Stock Heatmap ──────────────────────────────────────────────
+function TVStockHeatmap() {
   const ref = useTVWidget(
-    "https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js",
+    "https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js",
     {
-      interval: "1D",
-      width: "100%",
-      isTransparent: true,
-      height: 290,
-      symbol: tvSymbol,
-      showIntervalTabs: true,
-      displayMode: "single",
+      dataSource: "SPX500",
+      blockSize: "market_cap_basic",
+      blockColor: "change",
+      grouping: "sector",
       locale: "en",
+      symbolUrl: "",
       colorTheme: "dark",
+      exchanges: [],
+      hasTopBar: false,
+      isDataSetEnabled: false,
+      isZoomEnabled: true,
+      hasSymbolTooltip: true,
+      isMonoSize: false,
+      width: "100%",
+      height: "100%",
+    },
+    [],
+  );
+  return (
+    <div
+      ref={ref}
+      className="tradingview-widget-container"
+      style={{ width: "100%", height: "100%" }}
+    />
+  );
+}
+
+// ─── TradingView: Company Profile ────────────────────────────────────────────
+function TVCompanyProfile({ tvSymbol }) {
+  const ref = useTVWidget(
+    "https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js",
+    {
+      width: "100%",
+      height: 400,
+      colorTheme: "dark",
+      isTransparent: true,
+      symbol: tvSymbol,
+      locale: "en",
     },
     [tvSymbol],
   );
@@ -378,7 +418,64 @@ function TVTechnicalAnalysis({ tvSymbol }) {
     <div
       ref={ref}
       className="tradingview-widget-container"
-      style={{ width: "100%", minHeight: 290 }}
+      style={{ width: "100%", height: 400 }}
+    />
+  );
+}
+
+// ─── TradingView: Timeline (News) ────────────────────────────────────────────
+function TVTimeline() {
+  const ref = useTVWidget(
+    "https://s3.tradingview.com/external-embedding/embed-widget-timeline.js",
+    {
+      feedMode: "all_symbols",
+      colorTheme: "dark",
+      isTransparent: true,
+      displayMode: "regular",
+      width: "100%",
+      height: 450,
+      locale: "en",
+    },
+    [],
+  );
+  return (
+    <div
+      ref={ref}
+      className="tradingview-widget-container"
+      style={{ width: "100%", height: 450 }}
+    />
+  );
+}
+
+// ─── TradingView: Forex Cross Rates ──────────────────────────────────────────
+function TVForexCrossRates() {
+  const ref = useTVWidget(
+    "https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js",
+    {
+      width: "100%",
+      height: 400,
+      currencies: [
+        "EUR",
+        "USD",
+        "JPY",
+        "GBP",
+        "CHF",
+        "AUD",
+        "CAD",
+        "CNY",
+        "INR",
+      ],
+      isTransparent: true,
+      colorTheme: "dark",
+      locale: "en",
+    },
+    [],
+  );
+  return (
+    <div
+      ref={ref}
+      className="tradingview-widget-container"
+      style={{ width: "100%", height: 400 }}
     />
   );
 }
@@ -662,6 +759,11 @@ const Market = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [centerTab, setCenterTab] = useState("CHART");
+  const [marketAnalysisData, setMarketAnalysisData] = useState(null);
+  const [aiResult, setAiResult] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
+
 
   const [fearGreed, setFearGreed] = useState({ value: null, label: "" });
   const [forexRates, setForexRates] = useState(null);
@@ -682,6 +784,39 @@ const Market = () => {
       setLoading(false);
     }
   }, []);
+
+  const fetchAnalysisData = useCallback(async () => {
+    try {
+      setAiLoading(true);
+      const res = await fetch(`${API_BASE_URL}/api/market/widgets`);
+      if (res.ok) {
+        const rawData = await res.json();
+        setMarketAnalysisData(rawData);
+        
+        // Trigger AI analysis with raw data
+        const aiRes = await fetch(`${API_BASE_URL}/api/market/analysis`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ marketData: rawData }),
+        });
+        
+        if (aiRes.ok) {
+          const aiData = await aiRes.json();
+          setAiResult(aiData);
+        }
+      }
+    } catch (e) {
+      console.error("[Market] fetchAnalysisData:", e);
+    } finally {
+      setAiLoading(false);
+    }
+  }, []);
+
+
+  useEffect(() => {
+    fetchMarketData();
+    fetchAnalysisData();
+  }, [fetchMarketData, fetchAnalysisData]);
 
   // ── alternative.me: Fear & Greed ─────────────────────────────────────────
   useEffect(() => {
@@ -704,12 +839,9 @@ const Market = () => {
       .catch(() => {});
   }, []);
 
-  // ── CoinGecko: Top 6 crypto ───────────────────────────────────────────────
+  // ── CoinGecko: Top 6 crypto (proxied via backend to avoid CORS/429) ────────
   useEffect(() => {
-    fetch(
-      "https://api.coingecko.com/api/v3/coins/markets" +
-        "?vs_currency=usd&order=market_cap_desc&per_page=6&page=1&sparkline=false",
-    )
+    fetch("/api/market/crypto")
       .then((r) => r.json())
       .then((d) => setCrypto(Array.isArray(d) ? d : []))
       .catch(() => {});
@@ -883,7 +1015,10 @@ const Market = () => {
         </div>
 
         <button
-          onClick={fetchMarketData}
+          onClick={() => {
+            fetchMarketData();
+            fetchAnalysisData();
+          }}
           style={{
             background: "none",
             border: "1px solid rgba(255,255,255,0.1)",
@@ -981,7 +1116,7 @@ const Market = () => {
                     marginBottom: 1,
                     cursor: "pointer",
                     background: isSel ? "rgba(99,102,241,0.1)" : "transparent",
-                    border: `1px solid ${isSel ? "rgba(99,102,241,0.25)" : "transparent"}` ,
+                    border: `1px solid ${isSel ? "rgba(99,102,241,0.25)" : "transparent"}`,
                   }}
                 >
                   <div
@@ -1097,7 +1232,12 @@ const Market = () => {
             minWidth: 0,
           }}
         >
+          {/* AI Executive Summary Banner */}
+          <MarketSummaryBanner analysis={aiResult} loading={aiLoading} />
+
           {/* Asset info + tabs */}
+
+
           <div
             style={{
               borderBottom: "1px solid rgba(255,255,255,0.06)",
@@ -1283,29 +1423,34 @@ const Market = () => {
             flexShrink: 0,
           }}
         >
-          {/* TradingView Technical Analysis */}
+          {/* Market Heatmap */}
+          <div
+            style={{
+              height: 400,
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <div
+              style={{
+                padding: "10px 8px 5px",
+                fontSize: "8px",
+                fontWeight: 900,
+                color: "#5a7a9a",
+                letterSpacing: "0.1em",
+              }}
+            >
+              MARKET HEATMAP (S&P 500)
+            </div>
+            <div style={{ height: 370 }}>
+              <TVStockHeatmap />
+            </div>
+          </div>
+
+          {/* Company Profile (Replaces Asset Stats) */}
           {tvSym && (
-            <div style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <div
-                style={{
-                  padding: "5px 8px 0",
-                  fontSize: "8px",
-                  fontWeight: 900,
-                  color: "#5a7a9a",
-                  letterSpacing: "0.1em",
-                }}
-              >
-                TECHNICAL ANALYSIS
-              </div>
-              <TVTechnicalAnalysis tvSymbol={tvSym} />
-            </div>
-          )}
-
-          {/* Asset Stats */}
-          {sel && (
             <div
               style={{
-                padding: "6px 8px",
+                padding: "16px 8px",
                 borderBottom: "1px solid rgba(255,255,255,0.06)",
               }}
             >
@@ -1315,131 +1460,43 @@ const Market = () => {
                   fontWeight: 900,
                   color: "#5a7a9a",
                   letterSpacing: "0.1em",
-                  marginBottom: 5,
-                }}
-              >
-                ASSET STATS
-              </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 7,
-                }}
-              >
-                <StatBox
-                  label="52W HIGH"
-                  value={
-                    sel.raw?.fiftyTwoWeekHigh != null
-                      ? "$" + sel.raw.fiftyTwoWeekHigh.toFixed(2)
-                      : "—"
-                  }
-                  color="#10b981"
-                />
-                <StatBox
-                  label="52W LOW"
-                  value={
-                    sel.raw?.fiftyTwoWeekLow != null
-                      ? "$" + sel.raw.fiftyTwoWeekLow.toFixed(2)
-                      : "—"
-                  }
-                  color="#ef4444"
-                />
-                <StatBox
-                  label="MKT CAP"
-                  value={
-                    sel.raw?.marketCap != null
-                      ? "$" + (sel.raw.marketCap / 1e9).toFixed(1) + "B"
-                      : "—"
-                  }
-                />
-                <StatBox
-                  label="P/E"
-                  value={
-                    sel.raw?.trailingPE != null
-                      ? sel.raw.trailingPE.toFixed(1)
-                      : "—"
-                  }
-                />
-                <StatBox
-                  label="AVG VOL"
-                  value={
-                    sel.raw?.averageVolume != null
-                      ? (sel.raw.averageVolume / 1e6).toFixed(1) + "M"
-                      : "—"
-                  }
-                />
-                <StatBox
-                  label="BETA"
-                  value={sel.raw?.beta != null ? sel.raw.beta.toFixed(2) : "—"}
-                />
-              </div>
-              {/* Finnhub OHLC — open · day high/low · prev close */}
-              {fhQuote && (
-                <div
-                  style={{
-                    marginTop: 7,
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 7,
-                  }}
-                >
-                  <StatBox label="OPEN" value={`$${fhQuote.o?.toFixed(2)}`} />
-                  <StatBox
-                    label="PREV CLOSE"
-                    value={`$${fhQuote.pc?.toFixed(2)}`}
-                  />
-                  <StatBox
-                    label="DAY HIGH"
-                    value={`$${fhQuote.h?.toFixed(2)}`}
-                    color="#10b981"
-                  />
-                  <StatBox
-                    label="DAY LOW"
-                    value={`$${fhQuote.l?.toFixed(2)}`}
-                    color="#ef4444"
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Geopolitical risk + Narrative CTA */}
-          {sel && (
-            <div
-              style={{
-                padding: "6px 8px",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "9px",
-                  fontWeight: 900,
-                  color: "#ef4444",
-                  letterSpacing: "0.1em",
-                  marginBottom: 7,
-                }}
-              >
-                GEOPOLITICAL RISK
-              </div>
-              <div
-                style={{
-                  background: "rgba(231,76,60,0.06)",
-                  borderLeft: "3px solid #ef4444",
-                  padding: "9px 11px",
-                  borderRadius: 4,
-                  fontSize: "10px",
-                  color: "#b0c8d8",
-                  lineHeight: 1.6,
                   marginBottom: 10,
                 }}
               >
-                <strong style={{ color: "#ef4444" }}>{selSym}</strong> shows
-                elevated sensitivity to supply corridor disruptions.
-                Intelligence models flag heightened volatility probability over
-                the next 72h.
+                ASSET PROFILE & FUNDAMENTALS
               </div>
+              <TVCompanyProfile tvSymbol={tvSym} />
+            </div>
+          )}
+
+          {/* AI-Powered Market Intelligence */}
+          <div
+            style={{
+              padding: "6px 8px",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "9px",
+                fontWeight: 900,
+                color: "#6366f1",
+                letterSpacing: "0.1em",
+                marginBottom: 7,
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
+              }}
+            >
+              <Zap size={10} /> AI MARKET INTELLIGENCE
+            </div>
+            <MarketAnalysisPanel 
+              marketData={marketAnalysisData} 
+              existingAnalysis={aiResult}
+              isOverallLoading={aiLoading}
+            />
+            
+            {sel && (
               <button
                 onClick={() =>
                   navigate(
@@ -1447,24 +1504,74 @@ const Market = () => {
                   )
                 }
                 style={{
-                  width: "100%",
+                  width: "calc(100% - 16px)",
+                  margin: "12px 8px 8px 8px",
                   padding: "8px",
                   borderRadius: 6,
-                  border: "none",
-                  background: "#6366f1",
-                  color: "#fff",
+                  background: "rgba(99, 102, 241, 0.1)",
+                  border: "1px solid rgba(99, 102, 241, 0.3)",
+                  color: "#6366f1",
                   fontWeight: 900,
-                  fontSize: "11px",
+                  fontSize: "10px",
                   cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(99, 102, 241, 0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(99, 102, 241, 0.1)";
                 }}
               >
                 DEEP NARRATIVE SCAN ↗
               </button>
-            </div>
-          )}
+            )}
+          </div>
+
 
           {/* Finnhub: Company news for selected ticker */}
           <FinnhubNews symbol={selSym} />
+
+          {/* New Global Data Modules */}
+          <div
+            style={{
+              padding: "12px 8px",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "8px",
+                fontWeight: 900,
+                color: "#5a7a9a",
+                letterSpacing: "0.1em",
+                marginBottom: 10,
+              }}
+            >
+              FOREX CROSS RATES
+            </div>
+            <TVForexCrossRates />
+          </div>
+
+          <div
+            style={{
+              padding: "12px 8px",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "8px",
+                fontWeight: 900,
+                color: "#5a7a9a",
+                letterSpacing: "0.1em",
+                marginBottom: 10,
+              }}
+            >
+              GLOBAL NEWS STREAM
+            </div>
+            <TVTimeline />
+          </div>
 
           {/* Top Crypto (CoinGecko) */}
           {crypto.length > 0 && (

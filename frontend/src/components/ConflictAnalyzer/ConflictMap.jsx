@@ -23,6 +23,13 @@ const ConflictMap = ({ simulationResults, isSimulating, params, strikePhase, cou
   const [arcsData, setArcsData] = useState([]);
   const [ringsData, setRingsData] = useState([]);
   const [htmlElements, setHtmlElements] = useState([]);
+  const [chokepointsData, setChokepointsData] = useState([
+    { name: 'Suez Canal', lat: 29.9, lng: 32.5, id: 'Suez', tradeShare: 12 },
+    { name: 'Strait of Hormuz', lat: 26.5, lng: 56.2, id: 'Hormuz', tradeShare: 20 },
+    { name: 'Malacca Strait', lat: 1.3, lng: 103.4, id: 'Malacca', tradeShare: 15 },
+    { name: 'Bab el-Mandeb', lat: 12.6, lng: 43.3, id: 'Bab', tradeShare: 4 },
+    { name: 'Panama Canal', lat: 8.9, lng: -79.6, id: 'Panama', tradeShare: 5 }
+  ]);
 
   // Load map geometry once
   useEffect(() => {
@@ -135,15 +142,29 @@ const ConflictMap = ({ simulationResults, isSimulating, params, strikePhase, cou
         ringRepeatPeriod="repeatPeriod"
 
         // HTML Overlays for Intel markers
-        htmlElementsData={htmlElements}
+        htmlElementsData={[...htmlElements, ...chokepointsData.map(c => ({
+            ...c,
+            label: c.name,
+            color: (simulationResults?.analysis?.chokepoints?.some(cp => cp.includes(c.name.split(' ')[0]))) ? '#f1c40f' : 'rgba(52,152,219,0.3)',
+            type: 'chokepoint'
+        }))]}
         htmlElement={d => {
+          const isChoke = d.type === 'chokepoint';
+          const isHighRisk = isChoke && d.color !== 'rgba(52,152,219,0.3)';
           const el = document.createElement('div');
           el.innerHTML = `
             <div class="flex items-center space-x-1 whitespace-nowrap -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-              <div class="w-8 h-8 rounded-full border border-${d.color}-500 flex items-center justify-center animate-ping absolute"></div>
-              <div class="w-1.5 h-1.5 rounded-full bg-${d.color}-500 shadow-[0_0_10px_${d.color}] relative z-10"></div>
-              <div class="bg-[rgba(6,10,20,0.8)] border border-[rgba(51,65,85,0.8)] text-${d.color}-500 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest backdrop-blur-sm shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
-                ${d.label}
+              <div class="w-8 h-8 rounded-full border border-[${d.color}] flex items-center justify-center ${isHighRisk ? 'animate-ping' : ''} absolute"></div>
+              <div class="w-1.5 h-1.5 rounded-full bg-[${d.color}] shadow-[0_0_10px_${d.color}] relative z-10"></div>
+              <div class="flex flex-col gap-0.5">
+                <div class="bg-[rgba(6,10,20,0.8)] border border-[${d.color}] text-[${d.color}] px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest backdrop-blur-sm shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
+                  ${d.label}
+                </div>
+                ${isChoke ? `
+                <div class="bg-[rgba(0,0,0,0.6)] text-[10px] text-white/70 px-2 py-0.5 rounded font-bold border border-white/5 flex gap-2">
+                   <span>TRADE: ${d.tradeShare}%</span>
+                   ${isHighRisk ? '<span class="text-orange-500">DISRUPTED</span>' : ''}
+                </div>` : ''}
               </div>
             </div>
           `;
