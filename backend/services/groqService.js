@@ -139,7 +139,7 @@ const verifyClaim = async (claim, newsSignals = []) => {
 
 const generateLiveInsights = async (newsItems) => {
   // User-provided direct API key for insights
-  const insightsApiKey = "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";
+  const insightsApiKey = process.env.GROQ_API_KEY2 || process.env.GROQ_API_KEY;
   const insightsGroq = new Groq({ apiKey: insightsApiKey });
 
   try {

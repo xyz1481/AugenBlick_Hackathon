@@ -1508,7 +1508,6 @@ const Market = () => {
                   margin: "12px 8px 8px 8px",
                   padding: "8px",
                   borderRadius: 6,
-                  border: "none",
                   background: "rgba(99, 102, 241, 0.1)",
                   border: "1px solid rgba(99, 102, 241, 0.3)",
                   color: "#6366f1",

@@ -1,9 +1,9 @@
 const axios = require('axios');
 const Groq = require('groq-sdk');
 
-const ALPHA_VANTAGE_KEY = '3N3G2FM01JNYUZOX';
-const GNEWS_KEY = '862ebdd18708db12d056aa26c8a91e55';
-const GROQ_API_KEY = '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';
+const ALPHA_VANTAGE_KEY = process.env.ALPHA_VANTAGE_KEY;
+const GNEWS_KEY = process.env.GNEWS_API_KEY;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 const groq = new Groq({ apiKey: GROQ_API_KEY });
 

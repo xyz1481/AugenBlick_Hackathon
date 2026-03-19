@@ -2,7 +2,7 @@ require('dotenv').config();
 const axios = require('axios');
 const { generateLiveInsights } = require('./services/groqService');
 
-const GNEWS_API_KEY = "9f315d7aed8ac8d00d813968a20e9e14";
+const GNEWS_API_KEY = process.env.GNEWS_API_KEY;
 
 const testGNews = async () => {
   const query = 'geopolitics OR war';

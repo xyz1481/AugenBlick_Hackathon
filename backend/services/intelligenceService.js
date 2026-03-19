@@ -4,7 +4,7 @@ const dataService = require('./dataService');
 const trackingService = require('./trackingService');
 const stabilityService = require('./stabilityService');
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || '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';
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const groq = new Groq({ apiKey: GROQ_API_KEY });
 
 /**
