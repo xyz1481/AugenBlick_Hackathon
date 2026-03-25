@@ -841,7 +841,7 @@ const Market = () => {
 
   // ── CoinGecko: Top 6 crypto (proxied via backend to avoid CORS/429) ────────
   useEffect(() => {
-    fetch("/api/market/crypto")
+    fetch(`${import.meta.env.VITE_API_URL}/api/market/crypto`)
       .then((r) => r.json())
       .then((d) => setCrypto(Array.isArray(d) ? d : []))
       .catch(() => {});
